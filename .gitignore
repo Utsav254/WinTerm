@@ -1,0 +1,6 @@
+#compiled files:
+bin/
+exp
+
+#editor settings:
+.vscode/
