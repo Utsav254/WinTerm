@@ -17,8 +17,8 @@
 #define MV_CURS_HOME "\x1b[H"
 #define MV_CURS_HOME_l 3
 
-#define MV_CURS(x , y) "\x1b["#x";"#y"H"
-#define MV_CURS_l(x , y) (sizeof("\x1b["#x";"#y"H")-1)
+#define MV_CURS(l, c) "\x1b["#l";"#c"H"
+#define MV_CURS_l(l, c) (sizeof("\x1b["#l";"#c"H")-1)
 
 #define HIDE_CURS "\x1b[?25l"
 #define HIDE_CURS_l 6
@@ -28,17 +28,7 @@
 
 //graphics controls
 //multiple graphics at one
-#define GRAPH_SEQ(...)   "\x1b[" #__VA_ARGS__ "m"
-#define GRAPH_SEQ_l(...) (sizeof("\x1b[" #__VA_ARGS__ "m")-1)
-//graphics modes
-#define GRAPH_RST_ALL 0
-#define GRAPH_BOLD 1
-#define GRAPH_BOLD_RST 21
-#define GRAPH_FAINT 2
-#define GRAPH_FAINT_RST 22
-#define GRAPH_INV 7
-#define GRAPH_INV_RST 27
-// ...
-
+#define GRAPH_SEQ(...)   "\x1b["#__VA_ARGS__"m"
+#define GRAPH_SEQ_l(...) (sizeof("\x1b["#__VA_ARGS__"m")-1)
 
 #endif

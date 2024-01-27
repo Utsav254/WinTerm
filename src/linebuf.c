@@ -3,12 +3,15 @@
 
 #include "linebuf.h"
 #include "terminal.h"
+#include "expl.h"
 
 //allocate memory using calloc which will initialise with nullstring terminators
 //this simplifies the append function
 struct linebuf * lbAllocate(size_t buf_size) {
 
 	struct linebuf *lb = calloc(1, sizeof(struct linebuf) + buf_size);
+	
+	if(lb == NULL) die("calloc(linebuf)");
     
     //initialise values
     lb->s = buf_size;

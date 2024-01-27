@@ -1,28 +1,15 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <stdio.h>
-#include <string.h>
 #include <sys/ioctl.h>
 
 #include "ansi_escape_codes.h"
 #include "terminal.h"
+#include "expl.h"
 
 
 void writeOut (const char *s , int len) {
     write(STDOUT_FILENO , s , len);
-}
-
-void cleanUp() {
-	writeOut(END_ALT_TERM_BUF , END_ALT_TERM_BUF_l);
-	free(E.path);
-}
-
-void die (const char *s) {
-	cleanUp();
-	//write(STDERR_FILENO , s , strlen(s));
-	perror(s);
-	exit(1);
 }
 
 void disableRawMode() {
@@ -31,7 +18,6 @@ void disableRawMode() {
 
 void enableRawMode() {
 	if(tcgetattr(STDIN_FILENO, &E.orig_termios) == -1) die("tcgetattr");
-	atexit(disableRawMode);
 
 	struct termios raw = E.orig_termios;
 	raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);

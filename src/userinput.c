@@ -2,6 +2,7 @@
 
 #include "userinput.h"
 #include "terminal.h"
+#include "expl.h"
 
 void processKeypress() {
 	char c = readKey();

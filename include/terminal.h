@@ -7,6 +7,7 @@ struct exploreConfig {
 	struct termios orig_termios;
 	int screenrows;
 	int screencols;
+	int numrows;
 	char *path;
 };
 
@@ -15,12 +16,6 @@ extern struct exploreConfig E;
 
 //method to write to STDOUT
 void writeOut (const char *s , int len);
-
-//cleanup method before exiting program
-void cleanUp();
-
-//kill program if error with debugging statement
-void die (const char *s);
 
 //disbale terminal raw mode and restore previous terminal settings
 void disableRawMode();
