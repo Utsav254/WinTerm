@@ -50,9 +50,12 @@ void enAppend(entries *e , struct dirent * dent , int s , int t) {
         enResize(e);
     }
 
-    e->array[e->len].filename = strdup(dent->d_name);
+	char *temp = strdup(dent->d_name);
+
+    e->array[e->len].filename = temp;
     e->array[e->len].time = t;
     e->array[e->len].size = s;
+	e->array[e->len].filename_s = strlen(temp);
     e->len++;
 }
 

@@ -1,7 +1,7 @@
 #ifndef EXPL_H
 #define EXPL_H
 
-#define ERROR 2
+#define MIN_COL_COUNT 40
 
 //lines structure for the terminal window:
 extern struct linebuf **lines;

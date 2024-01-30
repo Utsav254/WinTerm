@@ -21,6 +21,12 @@ struct linebuf * lbAllocate(size_t buf_size) {
 	return lb;
 }
 
+void lbReset(struct linebuf *lb) {
+	memset(lb->b , '\0' , lb->s);
+	lb->p = 0;
+	lb->e = 0;
+}
+
 void lbAppend(struct linebuf *lb , const char *s , int len) {
     //check for buffer overflow error
 	if((lb->p + len) > (short int)lb->s - 1) { 

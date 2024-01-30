@@ -1,6 +1,8 @@
 #ifndef DIRIO_H
 #define DIRIO_H
 
+#include <dirent.h>
+
 // Function to get the current working directory
 int getCurrentDir(void);
 
@@ -8,6 +10,7 @@ int getCurrentDir(void);
 struct entry {
     int size; // in bytes...
     int time;
+	size_t filename_s;
     char *filename;
 };
 

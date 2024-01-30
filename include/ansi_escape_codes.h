@@ -26,6 +26,10 @@
 #define SHOW_CURS "\x1b[?25h"
 #define SHOW_CURS_l 6
 
+#define MV_CURS_NEXT_LINE "\x1b[E"
+#define MV_CURS_NEXT_LINE_l 3
+
+
 //graphics controls
 //multiple graphics at one
 #define GRAPH_SEQ(...)   "\x1b["#__VA_ARGS__"m"

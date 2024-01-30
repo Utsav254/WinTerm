@@ -9,11 +9,11 @@
 
 #define SIZE_PARTITION E.screencols/4
 #define SIZE_LABEL "size"
-#define SIZE_LABEL_sz (sizeof("size")-1)
+#define SIZE_LABEL_sz (sizeof(SIZE_LABEL)-1)
 
 #define DATE_PARTITION E.screencols/4
 #define DATE_LABEL "date"
-#define DATE_LABEL_sz (sizeof("size")-1)
+#define DATE_LABEL_sz (sizeof(DATE_LABEL)-1)
 
 
 void paintStatusBar();
