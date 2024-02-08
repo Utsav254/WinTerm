@@ -59,6 +59,6 @@ int main() {
 		processKeypress();
 	}
 
-	return 0;
+    return 0;
 }
 

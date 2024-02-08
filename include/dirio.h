@@ -8,7 +8,7 @@ int getCurrentDir(void);
 
 // Structure to represent directory entries
 struct entry {
-    int size; // in bytes...
+    long size; // in bytes...
     int time;
 	size_t filename_s;
     char *filename;
@@ -31,7 +31,7 @@ void enFree(entries *e);
 void enResize(entries *e);
 
 // Function to append a new directory entry to the entries array
-void enAppend(entries *e, struct dirent *dent, int s, int t);
+void enAppend(entries *e, struct dirent *dent, long s, int t);
 
 // Function to scan a directory and populate the entries structure
 void scandirectory(entries *e, const char *path);

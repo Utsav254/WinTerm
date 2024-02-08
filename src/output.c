@@ -1,58 +1,12 @@
 #include <string.h>
 #include <unistd.h>
-#include <stdlib.h>
 
 #include "output.h"
 #include "linebuf.h"
 #include "ansi_escape_codes.h"
 #include "dirio.h"
 #include "expl.h"
-
-void itoa(int num, char* buffer) {
-    int i = 0;
-    //skipping first value of buffer, individually append chars for each digit
-    do {
-        buffer[i++] = num % 10 + '0';
-        num /= 10;
-    } while (num > 0);
-    //reverse the string
-    int start = 0, end = i - 1;
-    while (start < end) {
-        char temp = buffer[start];
-        buffer[start] = buffer[end];
-        buffer[end] = temp;
-        start++;
-        end--;
-    }
-    //null terminate the string
-    buffer[i] = '\0';
-}
-
-void ftoa(float num, char* buffer, int precision) {
-    //extract the integer part of number and write to buffer
-    int intPart = (int)num;
-    itoa(intPart, buffer);
-    //traverse buffer until null terminator reached
-    while (*buffer != '\0') {
-        buffer++;
-    }
-    //rewrite null terminator with decimal point
-    *buffer++ = '.';
-    //extract fractional part of number
-    float fracPart = num - intPart;
-    int count = 0;
-    //for value uptill the required precision, iteratively extract the fractional value in order
-    while (count < precision) {
-        fracPart *= 10;
-        int digit = (int)fracPart;
-        *buffer++ = digit + '0';
-        fracPart -= digit;
-        count++;
-    }
-    //null terminate the string 
-    *buffer = '\0';
-}
-
+#include "numberformat.h"
 
 void paintStatusBar(struct linebuf *line) {
 	lbReset(line);
@@ -93,7 +47,7 @@ void paintStatusBar(struct linebuf *line) {
 void paintdirents(entries *e , struct linebuf *line , int i) {
 	lbReset(line);
 	if(i >= (int)e->len) return;
-
+    
 	char spaces[E.screencols];
 	memset(spaces , ' ' , E.screencols - 1);
 	spaces[E.screencols-1] = '\0';
@@ -108,9 +62,23 @@ void paintdirents(entries *e , struct linebuf *line , int i) {
 
 	lbAppend(line , spaces , PATH_PARTITION - (line->p - line->e));
 
+	lbAppend(line , spaces , ((SIZE_PARTITION)/2) - (SIZE_LABEL_sz)/2);
+	char sizebuf[5];
+    memset(sizebuf , ' ' , 5);
+	humanReadableSize(e->array[i].size , sizebuf, 5);
+	lbAppend(line , sizebuf , 10);
+	lbAppend(line , spaces , ((SIZE_PARTITION)/2) - (SIZE_LABEL_sz)/2);
+
+
+    char datebuf[20];
+    memset(datebuf , ' ' , 20);
+    itoa(e->array[i].time , datebuf , 20);
+    lbAppend(line , datebuf , 10);
+	lbAppend(line , spaces , ((DATE_PARTITION/2)) - (DATE_LABEL_sz)/2);
+
+
 	lbAppend(line , MV_CURS_NEXT_LINE , MV_CURS_NEXT_LINE_l);
 	writeOut(line->b , line->s);
-
 }
 
 
@@ -137,5 +105,4 @@ void paintScreen() {
 
 	enFree(ent);
 }
-
 

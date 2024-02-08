@@ -45,7 +45,7 @@ void enResize(entries *e) {
     e->capacity *= 2;
 }
 
-void enAppend(entries *e , struct dirent * dent , int s , int t) {
+void enAppend(entries *e , struct dirent * dent , long s , int t) {
     if(e->len == e->capacity) {
         enResize(e);
     }
@@ -68,7 +68,7 @@ void scandirectory(entries *e , const char *path) {
 
     while((dent = readdir(dir)) != NULL) {
         stat(dent->d_name , &fstat);
-        enAppend(e , dent , fstat.st_size , fstat.st_mtime);
+        enAppend(e , dent , (long)fstat.st_size , fstat.st_mtime);
     }
     closedir(dir);
 }
