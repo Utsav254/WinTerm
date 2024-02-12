@@ -20,6 +20,9 @@ valg: $(EXECUTABLE)
 clean:
 	rm -f $(BINDIR)/*.o $(EXECUTABLE)
 
+lsp:
+	bear -- make
+
 gdb:
 	gdb ./$(EXECUTABLE)
 

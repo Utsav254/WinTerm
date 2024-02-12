@@ -3,3 +3,6 @@ bin/
 exp
 #editor settings:
 .vscode/
+#lsp:
+.cache
+compile_commands.json
