@@ -1,11 +1,9 @@
 #include <unistd.h>
-#include <stdlib.h>
-#include <errno.h>
 #include <sys/ioctl.h>
 
-#include "ansi_escape_codes.h"
 #include "terminal.h"
 #include "expl.h"
+#include "userinput.h"
 
 
 void writeOut (const char *s , int len) {
@@ -42,12 +40,24 @@ int getWindowSize(int *rows, int *cols) {
 	}
 }
 
-char readKey() {
-	int nread;
-	char c;
-	while((nread = read(STDIN_FILENO , &c , 1)) != 1) {
-		if(nread == -1 && errno != EAGAIN) die("read");
-	}
-	return c;
+void exploreMoveCursor(int key) {
+    switch(key) {
+        case ARROW_LEFT:
+            if(E.cx != 0) E.cx--;
+            break;
+        case ARROW_RIGHT:
+            if(E.cx != E.screencols-1) E.cx++;
+            break;
+        case ARROW_UP:
+            if(E.cy != 1) E.cy--;
+            break;
+        case ARROW_DOWN:
+            if(E.cy != E.screenrows-1) E.cy++;
+            break;
+    }
 }
+
+
+
+
 

@@ -1,4 +1,7 @@
 #include <string.h>
+#include <time.h>
+
+#include "terminal.h"
 #include "numberformat.h"
 
 double myFloor(double x) {
@@ -110,3 +113,10 @@ void humanReadableSize(long size, char buffer[] , int n) {
     buffer[n-1] = '\0';
 }
 
+void ttoa(time_t timestamp, char buffer[] , size_t n , int mode) {
+    struct tm *timeinfo;
+    timeinfo = localtime(&timestamp);
+    
+    if(mode == FULL_MODE) strftime(buffer, n, "%d/%m/%Y %H:%M", timeinfo);
+    else strftime(buffer , n , "%d/%m/%y %H:%M" , timeinfo);
+}

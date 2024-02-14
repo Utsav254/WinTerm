@@ -16,4 +16,8 @@ int ftoa(double num , int precision, char* buffer, size_t n);
 void humanReadableSize(long size, char buffer[] , int n);
 
 
+void ttoa(time_t timestamp, char buffer[] , size_t n , int mode);
+
+
+
 #endif

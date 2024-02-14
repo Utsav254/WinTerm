@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -Wall -Wextra -pedantic -std=gnu99 -Iinclude
+CFLAGS = -g -Wall -Wextra -pedantic -std=gnu99
 SRCDIR = src
 BINDIR = bin
 SOURCES := $(wildcard $(SRCDIR)/*.c)
@@ -19,9 +19,6 @@ valg: $(EXECUTABLE)
 
 clean:
 	rm -f $(BINDIR)/*.o $(EXECUTABLE)
-
-lsp:
-	bear -- make
 
 gdb:
 	gdb ./$(EXECUTABLE)

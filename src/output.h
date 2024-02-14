@@ -7,12 +7,11 @@
 
 #define ESC_SEQ_EXTRA 128
 
-#define SIZE_PARTITION E.screencols/4
-#define SIZE_LABEL "size"
+#define SIZE_LABEL "Size"
 #define SIZE_LABEL_sz (sizeof(SIZE_LABEL)-1)
 
 #define DATE_PARTITION E.screencols/4
-#define DATE_LABEL "date"
+#define DATE_LABEL "Date Mod"
 #define DATE_LABEL_sz (sizeof(DATE_LABEL)-1)
 
 
