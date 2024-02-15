@@ -18,7 +18,10 @@ int getCurrentDir(void) {
 
 void changeDir(const char *path) {
     if(chdir(path) != 0) die("changeDir");
-    if(getCurrentDir() == 1) die("getCurrentDir\n");
+    else {
+        free(E.path);
+        if(getCurrentDir() == 1) die("getCurrentDir\n");
+    }
 }
 
 
@@ -82,9 +85,6 @@ int file_type (mode_t mode) {
 }
 
 void scandirectory(entries *e , const char *path) {
-    enFree(e);
-    e = enInit();
-
     DIR *dir = opendir(path);
     if(dir == NULL) die("opendir");
 

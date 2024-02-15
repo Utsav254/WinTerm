@@ -101,9 +101,9 @@ void paintdirents(entries *e , struct linebuf *line , int i) {
 
 void paintScreen(void) {
 	//for future fixing: its really dumb to allocate withing function which is called in an infinite while loop make this a global var...
-	entries *ent = enInit();
-	scandirectory(ent , E.path);
-    quickSort(ent , 0 , ent->len-1);
+    entries *ent = enInit();
+    scandirectory(ent , E.path);
+//    quickSort(ent , 0 , ent->len-1);
     
     paintStatusBar(lines[0]);
 
@@ -117,6 +117,7 @@ void paintScreen(void) {
         } else paintdirents(ent , lines[j] , j-1);
         lbReset(lines[j]);
     }
+
 	enFree(ent);
 }
 
