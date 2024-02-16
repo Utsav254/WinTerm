@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -15,6 +14,11 @@ struct exploreConfig E;
 
 struct linebuf **lines;
 
+entries *ent;
+
+int flag;
+
+
 void cleanUp(void) {
 
 	for(int i = 0 ; i < E.screenrows ; i++) {
@@ -22,6 +26,7 @@ void cleanUp(void) {
 	}
 	free(lines);
 	free(E.path);
+    if(ent != NULL) enFree(ent);
 	writeOut(END_ALT_TERM_BUF , END_ALT_TERM_BUF_l);
 	disableRawMode();
 }
@@ -34,6 +39,8 @@ void die (const char *s) {
 
 int main(void) {
 	//init application
+    flag = 1;
+
 	enableRawMode();
 	writeOut(INIT_ALT_TERM_BUF MV_CURS_HOME , INIT_ALT_TERM_BUF_l + MV_CURS_HOME_l);
 
@@ -49,7 +56,7 @@ int main(void) {
     else die("Window Size is too small\n");
 
     E.cx = 0;
-    E.cy = 0;
+    E.cy = 1;
 
     //TODO: userinput to decide sorting mode...
     E.sortmode = FILENAME_ASCEND;

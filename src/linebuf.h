@@ -18,7 +18,7 @@ struct linebuf {
 //buffer allocater
 struct linebuf * lbAllocate(size_t buf_size);
 
-//reset buffer information;
+//reset linebuffer:
 void lbReset(struct linebuf *lb);
 
 //appending function

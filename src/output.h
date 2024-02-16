@@ -2,6 +2,7 @@
 #define OUTPUT_H
 
 #include "terminal.h"
+#include "linebuf.h"
 
 #define PATH_PARTITION E.screencols/2
 
@@ -15,7 +16,7 @@
 #define DATE_LABEL_sz (sizeof(DATE_LABEL)-1)
 
 
-void paintStatusBar();
+void paintStatusBar(struct linebuf *line);
 
 void paintScreen();
 

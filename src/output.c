@@ -1,5 +1,6 @@
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "output.h"
 #include "linebuf.h"
@@ -15,8 +16,8 @@ int size_parition() {
 }
 
 void paintStatusBar(struct linebuf *line) {
+    lbReset(line);
     writeOut(MV_CURS_HOME , MV_CURS_HOME_l);
-	lbReset(line);
 	char spaces[E.screencols];
 	memset(spaces , ' ' , E.screencols - 1);
 	spaces[E.screencols] = '\0';
@@ -50,6 +51,7 @@ void paintStatusBar(struct linebuf *line) {
 }
 
 void paintdirents(entries *e , struct linebuf *line , int i) {
+    lbReset(line);
 	if(i >= (int)e->len) return;
     
 	char spaces[E.screencols];
@@ -101,10 +103,14 @@ void paintdirents(entries *e , struct linebuf *line , int i) {
 
 void paintScreen(void) {
 	//for future fixing: its really dumb to allocate withing function which is called in an infinite while loop make this a global var...
-    entries *ent = enInit();
-    scandirectory(ent , E.path);
-//    quickSort(ent , 0 , ent->len-1);
-    
+    if((flag & 1) == 1) {
+        if((flag & 2) == 2) enFree(ent);
+        ent = enInit();
+        scandirectory(ent , E.path);
+        quickSort(ent , 0 , ent->len-1);
+        flag &= (INT_MAX - 1);
+    }
+
     paintStatusBar(lines[0]);
 
     for (int j = 1; j < E.screenrows; j++) {
@@ -115,9 +121,10 @@ void paintScreen(void) {
 
             writeOut(GRAPH_SEQ(0) , GRAPH_SEQ_l(0)); //reset
         } else paintdirents(ent , lines[j] , j-1);
-        lbReset(lines[j]);
     }
 
-	enFree(ent);
+//    if((flag & 2) == 2) {
+//        enFree(ent);
+//    }
 }
 

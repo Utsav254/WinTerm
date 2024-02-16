@@ -13,7 +13,14 @@ int exploreReadKey() {
     while((nread = read(STDIN_FILENO , &c , 1)) != 1) {
         if(nread == -1 && errno != EAGAIN) die("read key function\n");
     }
-    if(c == 'h') return BACKSPACE;
+
+    if(c == 'h') {
+        flag |= 3;
+        return BACKSPACE;
+    }
+
+    if(c == 'j') return ARROW_DOWN;
+    if(c == 'k') return ARROW_UP;
     else if(c == '\x1b') {
         char seq[3];
 

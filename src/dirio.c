@@ -44,6 +44,7 @@ void enFree(entries *e) {
     }
     free(e->array);
     free(e);
+    flag &= 1;
 }
 
 void enResize(entries *e) {

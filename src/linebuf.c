@@ -22,9 +22,9 @@ struct linebuf * lbAllocate(size_t buf_size) {
 }
 
 void lbReset(struct linebuf *lb) {
-	memset(lb->b , '\0' , lb->s);
-	lb->p = 0;
-	lb->e = 0;
+        memset(lb->b , '\0' , lb->s);
+        lb->p = 0;
+        lb->e = 0;
 }
 
 void lbAppend(struct linebuf *lb , const char *s , int len) {
