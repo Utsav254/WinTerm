@@ -14,6 +14,13 @@ extern entries *ent;
 
 extern int flag;
 
+//--0000
+//--4321
+//bit1 : bool scandir? -- results in auto refresh of statusbar
+//bit2 : bool re-sort? 
+//bit3 : bool command bar refresh
+//bit4 : bool err message disp?
+
 //cleanup method before exiting program
 void cleanUp();
 

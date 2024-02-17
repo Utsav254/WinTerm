@@ -28,6 +28,10 @@ void lbReset(struct linebuf *lb);
 //if this is required, these must be in two separate calls to the append function
 void lbAppend(struct linebuf *lb , const char *s , int len);
 
+//to avoid constant use of memset use ListAppend:
+
+void lbListAppend(struct linebuf *lb , const char s , int len);
+
 //buffer destructor
 void lbFree(struct linebuf *lb);
 

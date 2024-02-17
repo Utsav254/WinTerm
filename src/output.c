@@ -1,6 +1,8 @@
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <limits.h>
+#include <errno.h>
+#include <stdio.h>
 
 #include "output.h"
 #include "linebuf.h"
@@ -18,9 +20,6 @@ int size_parition() {
 void paintStatusBar(struct linebuf *line) {
     lbReset(line);
     writeOut(MV_CURS_HOME , MV_CURS_HOME_l);
-	char spaces[E.screencols];
-	memset(spaces , ' ' , E.screencols - 1);
-	spaces[E.screencols] = '\0';
 
 	lbAppend(line , GRAPH_SEQ(7) , GRAPH_SEQ_l(7) );
 
@@ -33,30 +32,27 @@ void paintStatusBar(struct linebuf *line) {
 	}
 
 	//Pad required white space with space:
-	lbAppend(line , spaces , PATH_PARTITION - (line->p - line->e));
+    lbListAppend(line , ' ' , PATH_PARTITION - (line->p - line->e));
 
     if(E.screenmode != MINI_MODE) {
-        lbAppend(line , spaces , ((DATE_PARTITION/2)) - (DATE_LABEL_sz)/2);
+        lbListAppend(line , ' ' , ((DATE_PARTITION/2)) - (DATE_LABEL_sz)/2);
         lbAppend(line , DATE_LABEL , DATE_LABEL_sz);
-        lbAppend(line , spaces , ((DATE_PARTITION/2)) - (DATE_LABEL_sz)/2);
+        lbListAppend(line , ' ' , ((DATE_PARTITION/2)) - (DATE_LABEL_sz)/2);
     }
 
     int sp = size_parition();
-	lbAppend(line , spaces , (sp/2) - (SIZE_LABEL_sz)/2);
+	lbListAppend(line , ' ' , (sp/2) - (SIZE_LABEL_sz)/2);
 	lbAppend(line , SIZE_LABEL , SIZE_LABEL_sz);
-	lbAppend(line , spaces , (sp/2) - (SIZE_LABEL_sz)/2);
+	lbListAppend(line , ' ' , (sp/2) - (SIZE_LABEL_sz)/2);
 
-	lbAppend(line , GRAPH_SEQ(0) MV_CURS(2,1) SHOW_CURS , GRAPH_SEQ_l(0) + MV_CURS_l(2,1) + SHOW_CURS_l);
+	lbAppend(line , GRAPH_SEQ(0) MV_CURS(2,1), GRAPH_SEQ_l(0) + MV_CURS_l(2,1));
 	writeOut(line->b , line->s);
 }
 
 void paintdirents(entries *e , struct linebuf *line , int i) {
     lbReset(line);
+    //check for out of range index
 	if(i >= (int)e->len) return;
-    
-	char spaces[E.screencols];
-	memset(spaces , ' ' , E.screencols - 1);
-	spaces[E.screencols-1] = '\0';
 
 	if((int)e->array[i].filename_s > PATH_PARTITION-1) {
 		lbAppend(line , e->array[i].filename , PATH_PARTITION - 3);
@@ -66,52 +62,80 @@ void paintdirents(entries *e , struct linebuf *line , int i) {
 		lbAppend(line , e->array[i].filename  , (int)e->array[i].filename_s);
 	}
 
-	lbAppend(line , spaces , PATH_PARTITION - (line->p - line->e));
+	lbListAppend(line , ' ' , PATH_PARTITION - (line->p - line->e));
 
     if(E.screenmode != MINI_MODE) {
         if(E.screenmode == FULL_MODE) {
-            lbAppend(line , spaces , ((DATE_PARTITION)/2) - (16)/2);
-            char datebuf[16 + 1];
-            memset(datebuf , ' ' , 17);
-            ttoa(e->array[i].time , datebuf , 17 , E.screenmode);
-            lbAppend(line , datebuf , 16);
-            lbAppend(line , spaces , ((DATE_PARTITION/2)) - (16)/2);
+            lbListAppend(line , ' ' , ((DATE_PARTITION)/2) - (16)/2);
+            char datebuf[FULL_DATE_sz];
+            ttoa(e->array[i].time , datebuf , FULL_DATE_sz , E.screenmode);
+            lbAppend(line , datebuf , FULL_DATE_sz);
+            lbListAppend(line , ' ' , ((DATE_PARTITION/2)) - (16)/2);
         }
         else {
-            lbAppend(line , spaces , ((DATE_PARTITION)/2) - 14/2);
-            char datebuf[14];
-            memset(datebuf , ' ' , 14);
-            ttoa(e->array[i].time , datebuf , 14 , E.screenmode);
-            lbAppend(line , datebuf , 14);
-            lbAppend(line , spaces , ((DATE_PARTITION/2)) - 14/2);
+            lbListAppend(line , ' ' , ((DATE_PARTITION)/2) - 14/2);
+            char datebuf[MEDIUM_DATE_sz];
+            ttoa(e->array[i].time , datebuf , MEDIUM_DATE_sz, E.screenmode);
+            lbAppend(line , datebuf , MEDIUM_DATE_sz);
+            lbListAppend(line , ' ' , ((DATE_PARTITION/2)) - 14/2);
         }
     }
     
     int sp = size_parition();
-	lbAppend(line , spaces , (sp/2) - (SIZE_LABEL_sz)/2);
-	char sizebuf[SIZE_LABEL_sz + 1];
-    memset(sizebuf , ' ' , SIZE_LABEL_sz);
-	humanReadableSize(e->array[i].size , sizebuf, 5);
-	lbAppend(line , sizebuf , 10);
-	lbAppend(line , spaces , (sp/2) - (SIZE_LABEL_sz)/2);
-
-
+	lbListAppend(line , ' ' , (sp/2) - (SIZE_LABEL_sz)/2);
+    //check if it is a directory
+    if(e->array[i].type == DIRECTORY_TYPE) {
+        lbAppend(line , " -- " , 4);
+    }
+    //append file size in human readable form
+    else {
+        char sizebuf[SIZE_LABEL_sz + 1];
+        memset(sizebuf , ' ' , SIZE_LABEL_sz);
+        humanReadableSize(e->array[i].size , sizebuf, 5);
+        lbAppend(line , sizebuf , SIZE_LABEL_sz);
+    }
+    lbListAppend(line , ' ' , (sp/2) - (SIZE_LABEL_sz)/2);
 	lbAppend(line , MV_CURS_NEXT_LINE , MV_CURS_NEXT_LINE_l);
 	writeOut(line->b , line->s);
 }
 
+void paintCommandBar(struct linebuf *line) {
+    lbReset(line);
+    //move cursor to buttom...
+    writeOut(MV_CURS(999 , 1) , MV_CURS_l(999 , 1));
+
+    //fetch the err message...
+    //const char *errmsg = strerror(E.errnum);
+
+    //lbAppend(line , errmsg , 5);
+
+	writeOut(line->b , line->s);
+    //reset command bar flag:
+    //flag ^= 12;
+}
+
 
 void paintScreen(void) {
-	//for future fixing: its really dumb to allocate withing function which is called in an infinite while loop make this a global var...
     if((flag & 1) == 1) {
-        if((flag & 2) == 2) enFree(ent);
+        //change directory so clear the whole the screen...in the future clear everything but the CommandBar
+        writeOut(CLR_SCR_BUF , CLR_SCR_BUF_l);
+
+        enFree(ent);
         ent = enInit();
         scandirectory(ent , E.path);
-        quickSort(ent , 0 , ent->len-1);
-        flag &= (INT_MAX - 1);
-    }
+        //if cursos if off the page reset position...
+        if((E.cy - 1) > (int)(ent->len-1)) E.cy = (int)(ent->len);
 
-    paintStatusBar(lines[0]);
+        //change in status bar required...
+        paintStatusBar(lines[0]);
+        //reset scan flag
+        flag ^= 1;
+    }
+    if((flag & 2) == 2) {
+        quickSort(ent , 0 , ent->len-1);
+        //reset sort flag
+        flag ^= 2;
+    }
 
     for (int j = 1; j < E.screenrows; j++) {
         if(j == E.cy || j == E.cy-1) {
@@ -120,11 +144,12 @@ void paintScreen(void) {
             paintdirents(ent , lines[j] , j-1);
 
             writeOut(GRAPH_SEQ(0) , GRAPH_SEQ_l(0)); //reset
-        } else paintdirents(ent , lines[j] , j-1);
-    }
+        }
+        else paintdirents(ent , lines[j] , j-1);
 
-//    if((flag & 2) == 2) {
-//        enFree(ent);
-//    }
+        //if(j == E.screenrows-1) paintCommandBar(lines[j]);
+
+    }
+    writeOut(MV_CURS(2 , 0) , MV_CURS_l(2 , 0));
 }
 

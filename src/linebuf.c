@@ -2,7 +2,6 @@
 #include <string.h>
 
 #include "linebuf.h"
-#include "terminal.h"
 #include "expl.h"
 
 //allocate memory using calloc which will initialise with nullstring terminators
@@ -43,6 +42,18 @@ void lbAppend(struct linebuf *lb , const char *s , int len) {
 		strncpy((lb->b + lb->p) , s , len);
 		lb->p += len;
 	}
+}
+
+void lbListAppend(struct linebuf *lb , const char s , int len) {
+    //used to fill a linebuffer with some character...
+    //check for buffer overflow
+    if((lb->p + len) > (short int)lb->s -1) die("linebuffer overflow");
+
+    //fill line with required char complexity O(n)
+    for(int i = 0 ; i < len ; i++) {
+        lb->b[lb->p] = s;
+        lb->p++;
+    }
 }
 
 void lbFree(struct linebuf *lb) {

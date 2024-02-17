@@ -14,13 +14,17 @@ $(EXECUTABLE): $(OBJECTS)
 $(BINDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+run: $(EXECUTABLE)
+	clear > /dev/pts/$(filter-out $@,$(MAKECMDGOALS))
+	./$(EXECUTABLE) 1 2> /dev/pts/$(filter-out $@,$(MAKECMDGOALS))
+
 valg: $(EXECUTABLE)
 	valgrind -s --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(EXECUTABLE)
 
 clean:
 	rm -f $(BINDIR)/*.o $(EXECUTABLE)
 
-gdb:
+gdb: $(EXECUTABLE)
 	gdb ./$(EXECUTABLE)
 
 test: test.c

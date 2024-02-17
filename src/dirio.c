@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <stdio.h>
 
 #include "terminal.h"
 #include "expl.h"
@@ -17,14 +19,16 @@ int getCurrentDir(void) {
 }
 
 void changeDir(const char *path) {
-    if(chdir(path) != 0) die("changeDir");
+    if(chdir(path) != 0) fprintf(stderr , "errno: %d %s\n" , errno , strerror(errno));
     else {
+        //flip sort and scant flag
+        flag ^= 3;
         free(E.path);
         if(getCurrentDir() == 1) die("getCurrentDir\n");
     }
 }
 
-
+//---------------Entries--data--strucutre--functions------------------------//
 entries *enInit(void) {
     entries *e = (entries *)malloc(sizeof(entries));
     if(e == NULL) die("malloc(entries");
@@ -44,7 +48,6 @@ void enFree(entries *e) {
     }
     free(e->array);
     free(e);
-    flag &= 1;
 }
 
 void enResize(entries *e) {
@@ -93,11 +96,8 @@ void scandirectory(entries *e , const char *path) {
     struct stat fstat;
 
     while((dent = readdir(dir)) != NULL) {
-        if(strcmp(dent->d_name , ".") == 0 || strcmp(dent->d_name , "..") == 0) continue;
-        else {
-             stat(dent->d_name , &fstat);
-             enAppend(e , dent , (long)fstat.st_size , fstat.st_mtime , fstat.st_mode);
-        }        
+        stat(dent->d_name , &fstat);
+        enAppend(e , dent , (long)fstat.st_size , fstat.st_mtime , fstat.st_mode);
     }
     closedir(dir);
 }
@@ -109,9 +109,7 @@ void enSwap(struct entry *a , struct entry *b) {
 } 
 
 int compare(struct entry *a , struct entry *b) {
-    if(strcmp(a->filename ,"..") == 0) return -1;
-    else if(strcmp(b->filename , "..") == 0) return 1;
-    else if(a->type == DIRECTORY_TYPE && b->type == REGULAR_TYPE) return -1;
+    if(a->type == DIRECTORY_TYPE && b->type == REGULAR_TYPE) return -1;
     else if(b->type == DIRECTORY_TYPE && a->type == REGULAR_TYPE) return 1;
     else {
         switch(E.sortmode){
@@ -131,10 +129,20 @@ int compare(struct entry *a , struct entry *b) {
             else if(b->size < a->size) return 1;
             else return 0;
             break;
+        case FILEDATE_ASCEND:
+            if(a->time > b->time) return -1;
+            else if(b->time > a->time) return 1;
+            else return 0;
+            break;
+        case FILEDATE_DESCEND:
+            if(a->time < b->time) return-1;
+            else if(b->time < a->time) return 1;
+            else return 0;
+            break;
         default:
             break;    
         }
-        die("invalid sort mode\n");
+        die("invalid sortmode\n");
         return 0;
     }
 }

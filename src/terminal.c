@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <stdio.h>
 
 #include "terminal.h"
 #include "expl.h"
@@ -52,9 +53,10 @@ void exploreMoveCursor(int key) {
             if(E.cy != 1) E.cy--;
             break;
         case ARROW_DOWN:
-            if(E.cy != E.screenrows-1) E.cy++;
+            if((E.cy != (int)(ent->len)) && (E.cy != E.screenrows-1)) E.cy++;
             break;
     }
+    fprintf(stderr , "curpos : %d pointing to %s\n" , E.cy-1 , ent->array[E.cy-1].filename);
 }
 
 

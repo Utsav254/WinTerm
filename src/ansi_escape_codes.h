@@ -1,5 +1,8 @@
 #ifndef ANSI_ESCAPE_CODES_H
 #define ANSI_ESCAPE_CODES_H
+
+#define LARGE_CURS_VAL 999
+
 //usage:
 //adding a _l refers to the number of bytes in the escapesequence
 

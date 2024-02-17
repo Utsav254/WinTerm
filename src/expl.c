@@ -16,8 +16,7 @@ struct linebuf **lines;
 
 entries *ent;
 
-int flag;
-
+int flag = 64;
 
 void cleanUp(void) {
 
@@ -27,7 +26,8 @@ void cleanUp(void) {
 	free(lines);
 	free(E.path);
     if(ent != NULL) enFree(ent);
-	writeOut(END_ALT_TERM_BUF , END_ALT_TERM_BUF_l);
+	writeOut(END_ALT_TERM_BUF SHOW_CURS, END_ALT_TERM_BUF_l + SHOW_CURS_l);
+    //TODO : change directory upon exit ....
 	disableRawMode();
 }
 
@@ -39,10 +39,8 @@ void die (const char *s) {
 
 int main(void) {
 	//init application
-    flag = 1;
-
 	enableRawMode();
-	writeOut(INIT_ALT_TERM_BUF MV_CURS_HOME , INIT_ALT_TERM_BUF_l + MV_CURS_HOME_l);
+	writeOut(INIT_ALT_TERM_BUF MV_CURS_HOME HIDE_CURS, INIT_ALT_TERM_BUF_l + MV_CURS_HOME_l + HIDE_CURS_l);
 
 	//fetch current working directory
 	if(getCurrentDir() == -1) die("getCurrentDir");
@@ -57,9 +55,14 @@ int main(void) {
 
     E.cx = 0;
     E.cy = 1;
-
-    //TODO: userinput to decide sorting mode...
+    
+    //initialise directory data:
     E.sortmode = FILENAME_ASCEND;
+    ent = enInit();
+    scandirectory(ent , E.path);
+    quickSort(ent , 0 , ent->len-1);
+    //set flag to force printing
+    flag ^= 3; 
 
 	//allocate linebuffers for each row
 	lines = malloc(E.screenrows * sizeof(struct linebuf*));
@@ -67,8 +70,10 @@ int main(void) {
 	for(int i = 0 ; i < E.screenrows ; i++) {
 		lines[i] = lbAllocate(E.screencols + ESC_SEQ_EXTRA);
 	}
+
+    paintStatusBar(lines[0]);
 	
-	//program loop:
+    //program loop:
 	while(1) {
 		paintScreen();
 		processKeypress();

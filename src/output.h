@@ -14,6 +14,9 @@
 #define DATE_PARTITION E.screencols/4
 #define DATE_LABEL "Date Mod"
 #define DATE_LABEL_sz (sizeof(DATE_LABEL)-1)
+#define FULL_DATE_sz 17
+#define MEDIUM_DATE_sz 15
+
 
 
 void paintStatusBar(struct linebuf *line);
