@@ -18,7 +18,7 @@ struct exploreConfig {
     int screenmode;
 	char *path;
     int sortmode;
-    int errnum;
+    int scroll_offset;
     int cx , cy;
 };
 

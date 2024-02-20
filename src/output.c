@@ -1,8 +1,6 @@
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <stdio.h>
 
 #include "output.h"
 #include "linebuf.h"
@@ -23,13 +21,13 @@ void paintStatusBar(struct linebuf *line) {
 
 	lbAppend(line , GRAPH_SEQ(7) , GRAPH_SEQ_l(7) );
 
-	if((int)strlen(E.path) > PATH_PARTITION-1) {
+    int n = (int)strlen(E.path);
+
+	if(n > PATH_PARTITION-1) {
 		lbAppend(line , E.path , PATH_PARTITION - 3);
 		lbAppend(line , "..." , 3);
 	}
-	else {
-		lbAppend(line , E.path , strlen(E.path));
-	}
+	else lbAppend(line , E.path , n);
 
 	//Pad required white space with space:
     lbListAppend(line , ' ' , PATH_PARTITION - (line->p - line->e));
@@ -51,6 +49,7 @@ void paintStatusBar(struct linebuf *line) {
 
 void paintdirents(entries *e , struct linebuf *line , int i) {
     lbReset(line);
+    lbAppend(line , CLR_CURR_LINE , CLR_CURR_LINE_l);
     //check for out of range index
 	if(i >= (int)e->len) return;
 
@@ -104,52 +103,69 @@ void paintCommandBar(struct linebuf *line) {
     //move cursor to buttom...
     writeOut(MV_CURS(999 , 1) , MV_CURS_l(999 , 1));
 
-    //fetch the err message...
-    //const char *errmsg = strerror(E.errnum);
+    //check if errnum set ... TODO: imrpove errmsg formatting
+    if(flag & 8) {
+        lbAppend(line , GRAPH_SEQ(31) , GRAPH_SEQ_l(31));
+        char *errmsg = strerror(errno);
+        int n = (int)strlen(errmsg);
 
-    //lbAppend(line , errmsg , 5);
+        if(n > PATH_PARTITION-1) {
+            lbAppend(line , errmsg , PATH_PARTITION - 3);
+            lbAppend(line , "..." , 3);
+        }
+        else lbAppend(line , errmsg , n);
 
+        lbAppend(line , GRAPH_SEQ(0) , GRAPH_SEQ_l(0));
+    }
+
+    //write to console and reset flag
 	writeOut(line->b , line->s);
-    //reset command bar flag:
-    //flag ^= 12;
+    flag ^= 12;
 }
 
 
 void paintScreen(void) {
-    if((flag & 1) == 1) {
-        //change directory so clear the whole the screen...in the future clear everything but the CommandBar
-        writeOut(CLR_SCR_BUF , CLR_SCR_BUF_l);
 
-        enFree(ent);
-        ent = enInit();
-        scandirectory(ent , E.path);
-        //if cursos if off the page reset position...
-        if((E.cy - 1) > (int)(ent->len-1)) E.cy = (int)(ent->len);
+    //main printing loop
+    for (int j = 0; j < E.screenrows; j++) {
+        //check if flag[0] is set for scan directory
+        if(j == 0 && (flag & 1) == 1) {
+            writeOut(CLR_SCR_BUF , CLR_SCR_BUF_l);
 
-        //change in status bar required...
-        paintStatusBar(lines[0]);
-        //reset scan flag
-        flag ^= 1;
-    }
-    if((flag & 2) == 2) {
-        quickSort(ent , 0 , ent->len-1);
-        //reset sort flag
-        flag ^= 2;
-    }
+            enFree(ent);
+            ent = enInit();
+            scandirectory(ent , E.path);
 
-    for (int j = 1; j < E.screenrows; j++) {
-        if(j == E.cy || j == E.cy-1) {
-            writeOut(GRAPH_SEQ(4) , GRAPH_SEQ_l(4)); // this should be the cursos position
+            //reset scroll_offset if required
+            if((E.screenrows-2) > (int)ent->len) E.scroll_offset = 0;
 
-            paintdirents(ent , lines[j] , j-1);
+            //if cursos is off the page, reset position to lowest poition
+            if((E.cy - 1) > (int)(ent->len-1)) E.cy = (int)(ent->len);
 
-            writeOut(GRAPH_SEQ(0) , GRAPH_SEQ_l(0)); //reset
+            //change in status bar required...
+            paintStatusBar(lines[0]);
+
+            //reset scan flag
+            flag ^= 1;
         }
-        else paintdirents(ent , lines[j] , j-1);
+        //check if sorting is required
+        if((flag & 2) == 2) {
+            quickSort(ent , 0 , ent->len-1);
+            flag ^= 2;
+        }
 
-        //if(j == E.screenrows-1) paintCommandBar(lines[j]);
+        if(j > 0 && j < E.screenrows-1) {
+            if(j == E.cy || j == E.cy-1) {
+                writeOut(GRAPH_SEQ(4) , GRAPH_SEQ_l(4)); // this should be the cursos position
+                paintdirents(ent , lines[j] , j-1+E.scroll_offset);
+                writeOut(GRAPH_SEQ(0) , GRAPH_SEQ_l(0)); //reset
+            }
+            else paintdirents(ent , lines[j] , j-1+E.scroll_offset);
+        }
 
+        //flag check and print commandBar
+        if(j == E.screenrows-1 && (flag & 4) == 4) paintCommandBar(lines[j]);
     }
-    writeOut(MV_CURS(2 , 0) , MV_CURS_l(2 , 0));
+    writeOut(MV_CURS(2,1) , MV_CURS_l(2,1));
 }
 

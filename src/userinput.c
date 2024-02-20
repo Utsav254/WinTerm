@@ -51,8 +51,7 @@ void processKeypress() {
 
         //basic control characters
         case '\r':
-            fprintf(stderr , "%p\n" , &ent->array[E.cy-1].filename);
-            changeDir(ent->array[E.cy-1].filename);
+            changeDir(ent->array[E.cy-1+E.scroll_offset].filename);
             break;
 
         //control keymaps

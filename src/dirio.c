@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <stdio.h>
 
 #include "terminal.h"
@@ -19,7 +18,7 @@ int getCurrentDir(void) {
 }
 
 void changeDir(const char *path) {
-    if(chdir(path) != 0) fprintf(stderr , "errno: %d %s\n" , errno , strerror(errno));
+    if(chdir(path) != 0) flag ^= 12; 
     else {
         //flip sort and scant flag
         flag ^= 3;

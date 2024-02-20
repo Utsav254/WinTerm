@@ -55,6 +55,7 @@ int main(void) {
 
     E.cx = 0;
     E.cy = 1;
+    E.scroll_offset = 0;
     
     //initialise directory data:
     E.sortmode = FILENAME_ASCEND;

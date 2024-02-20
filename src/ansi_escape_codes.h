@@ -16,6 +16,9 @@
 #define CLR_SCR_BUF "\x1b[2J"
 #define CLR_SCR_BUF_l 8
 
+#define CLR_CURR_LINE "\x1b[K"
+#define CLR_CURR_LINE_l 3
+
 //cursor controls
 #define MV_CURS_HOME "\x1b[H"
 #define MV_CURS_HOME_l 3

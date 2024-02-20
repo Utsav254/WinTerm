@@ -51,12 +51,13 @@ void exploreMoveCursor(int key) {
             break;
         case ARROW_UP:
             if(E.cy != 1) E.cy--;
+            else if(E.scroll_offset > 0) E.scroll_offset--;
             break;
         case ARROW_DOWN:
-            if((E.cy != (int)(ent->len)) && (E.cy != E.screenrows-1)) E.cy++;
+            if((E.cy < (int)(ent->len)) && (E.cy < E.screenrows-2)) E.cy++;
+            else if(E.scroll_offset < ((int)(ent->len) - (E.screenrows-2))) E.scroll_offset++;
             break;
     }
-    fprintf(stderr , "curpos : %d pointing to %s\n" , E.cy-1 , ent->array[E.cy-1].filename);
 }
 
 
