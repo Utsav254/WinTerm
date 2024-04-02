@@ -29,3 +29,5 @@ gdb: $(EXECUTABLE)
 
 test: test.c
 	$(CC) test.c -o test $(CFLAGS)
+ansi: ansi.c
+	$(CC) ansi.c -o ansi $(CFLAGS)

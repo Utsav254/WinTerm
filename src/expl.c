@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "expl.h"
 #include "output.h"
@@ -24,11 +25,12 @@ void cleanUp(void) {
 		lbFree(lines[i]);
 	}
 	free(lines);
-	free(E.path);
+
     if(ent != NULL) enFree(ent);
 	writeOut(END_ALT_TERM_BUF SHOW_CURS, END_ALT_TERM_BUF_l + SHOW_CURS_l);
-    //TODO : change directory upon exit ....
 	disableRawMode();
+
+    free(E.path);
 }
 
 void die (const char *s) {
