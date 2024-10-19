@@ -1,8 +1,16 @@
 #compiled files:
-bin/
 exp
+
+#cmake stuff:
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+Makefile
+
 #editor settings:
 .vscode/
+
 #lsp:
 .cache
 compile_commands.json
