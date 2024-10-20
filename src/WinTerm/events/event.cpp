@@ -1,4 +1,4 @@
-#include "WinTerm/event.hpp"
+#include "WinTerm/events/event.hpp"
 
 namespace winTerm
 {

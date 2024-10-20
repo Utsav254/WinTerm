@@ -1,6 +1,4 @@
-#include <cctype>
-#include <cstdio>
-#include <cstdlib>
+#include <iostream>
 #include <unistd.h>
 #include "WinTerm/winTerm.hpp"
 
@@ -32,6 +30,8 @@ void termProc(const winTerm::event& e) {
 			}
 			break;
 		case winTerm::event::RESIZE:
+			std::cout << "resize: " << winTerm::rows << " , " << winTerm::columns  << "\r" << std::endl;
+			break;
 		case winTerm::event::NONE:
         case winTerm::event::QUIT:
             break;

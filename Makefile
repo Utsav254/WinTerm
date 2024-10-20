@@ -129,53 +129,101 @@ exp/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/build
 .PHONY : exp/fast
 
-src/WinTerm/event.o: src/WinTerm/event.cpp.o
-.PHONY : src/WinTerm/event.o
+src/WinTerm/ansi/stdinReader.o: src/WinTerm/ansi/stdinReader.cpp.o
+.PHONY : src/WinTerm/ansi/stdinReader.o
 
 # target to build an object file
-src/WinTerm/event.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/event.cpp.o
-.PHONY : src/WinTerm/event.cpp.o
+src/WinTerm/ansi/stdinReader.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/ansi/stdinReader.cpp.o
+.PHONY : src/WinTerm/ansi/stdinReader.cpp.o
 
-src/WinTerm/event.i: src/WinTerm/event.cpp.i
-.PHONY : src/WinTerm/event.i
+src/WinTerm/ansi/stdinReader.i: src/WinTerm/ansi/stdinReader.cpp.i
+.PHONY : src/WinTerm/ansi/stdinReader.i
 
 # target to preprocess a source file
-src/WinTerm/event.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/event.cpp.i
-.PHONY : src/WinTerm/event.cpp.i
+src/WinTerm/ansi/stdinReader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/ansi/stdinReader.cpp.i
+.PHONY : src/WinTerm/ansi/stdinReader.cpp.i
 
-src/WinTerm/event.s: src/WinTerm/event.cpp.s
-.PHONY : src/WinTerm/event.s
+src/WinTerm/ansi/stdinReader.s: src/WinTerm/ansi/stdinReader.cpp.s
+.PHONY : src/WinTerm/ansi/stdinReader.s
 
 # target to generate assembly for a file
-src/WinTerm/event.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/event.cpp.s
-.PHONY : src/WinTerm/event.cpp.s
+src/WinTerm/ansi/stdinReader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/ansi/stdinReader.cpp.s
+.PHONY : src/WinTerm/ansi/stdinReader.cpp.s
 
-src/WinTerm/privates.o: src/WinTerm/privates.cpp.o
-.PHONY : src/WinTerm/privates.o
+src/WinTerm/events/event.o: src/WinTerm/events/event.cpp.o
+.PHONY : src/WinTerm/events/event.o
 
 # target to build an object file
-src/WinTerm/privates.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/privates.cpp.o
-.PHONY : src/WinTerm/privates.cpp.o
+src/WinTerm/events/event.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/events/event.cpp.o
+.PHONY : src/WinTerm/events/event.cpp.o
 
-src/WinTerm/privates.i: src/WinTerm/privates.cpp.i
-.PHONY : src/WinTerm/privates.i
+src/WinTerm/events/event.i: src/WinTerm/events/event.cpp.i
+.PHONY : src/WinTerm/events/event.i
 
 # target to preprocess a source file
-src/WinTerm/privates.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/privates.cpp.i
-.PHONY : src/WinTerm/privates.cpp.i
+src/WinTerm/events/event.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/events/event.cpp.i
+.PHONY : src/WinTerm/events/event.cpp.i
 
-src/WinTerm/privates.s: src/WinTerm/privates.cpp.s
-.PHONY : src/WinTerm/privates.s
+src/WinTerm/events/event.s: src/WinTerm/events/event.cpp.s
+.PHONY : src/WinTerm/events/event.s
 
 # target to generate assembly for a file
-src/WinTerm/privates.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/privates.cpp.s
-.PHONY : src/WinTerm/privates.cpp.s
+src/WinTerm/events/event.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/events/event.cpp.s
+.PHONY : src/WinTerm/events/event.cpp.s
+
+src/WinTerm/events/queue.o: src/WinTerm/events/queue.cpp.o
+.PHONY : src/WinTerm/events/queue.o
+
+# target to build an object file
+src/WinTerm/events/queue.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/events/queue.cpp.o
+.PHONY : src/WinTerm/events/queue.cpp.o
+
+src/WinTerm/events/queue.i: src/WinTerm/events/queue.cpp.i
+.PHONY : src/WinTerm/events/queue.i
+
+# target to preprocess a source file
+src/WinTerm/events/queue.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/events/queue.cpp.i
+.PHONY : src/WinTerm/events/queue.cpp.i
+
+src/WinTerm/events/queue.s: src/WinTerm/events/queue.cpp.s
+.PHONY : src/WinTerm/events/queue.s
+
+# target to generate assembly for a file
+src/WinTerm/events/queue.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/events/queue.cpp.s
+.PHONY : src/WinTerm/events/queue.cpp.s
+
+src/WinTerm/misc/size.o: src/WinTerm/misc/size.cpp.o
+.PHONY : src/WinTerm/misc/size.o
+
+# target to build an object file
+src/WinTerm/misc/size.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/misc/size.cpp.o
+.PHONY : src/WinTerm/misc/size.cpp.o
+
+src/WinTerm/misc/size.i: src/WinTerm/misc/size.cpp.i
+.PHONY : src/WinTerm/misc/size.i
+
+# target to preprocess a source file
+src/WinTerm/misc/size.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/misc/size.cpp.i
+.PHONY : src/WinTerm/misc/size.cpp.i
+
+src/WinTerm/misc/size.s: src/WinTerm/misc/size.cpp.s
+.PHONY : src/WinTerm/misc/size.s
+
+# target to generate assembly for a file
+src/WinTerm/misc/size.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/misc/size.cpp.s
+.PHONY : src/WinTerm/misc/size.cpp.s
 
 src/WinTerm/winTerm.o: src/WinTerm/winTerm.cpp.o
 .PHONY : src/WinTerm/winTerm.o
@@ -201,29 +249,29 @@ src/WinTerm/winTerm.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/winTerm.cpp.s
 .PHONY : src/WinTerm/winTerm.cpp.s
 
-src/expl.o: src/expl.cpp.o
-.PHONY : src/expl.o
+src/main.o: src/main.cpp.o
+.PHONY : src/main.o
 
 # target to build an object file
-src/expl.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/expl.cpp.o
-.PHONY : src/expl.cpp.o
+src/main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/main.cpp.o
+.PHONY : src/main.cpp.o
 
-src/expl.i: src/expl.cpp.i
-.PHONY : src/expl.i
+src/main.i: src/main.cpp.i
+.PHONY : src/main.i
 
 # target to preprocess a source file
-src/expl.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/expl.cpp.i
-.PHONY : src/expl.cpp.i
+src/main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/main.cpp.i
+.PHONY : src/main.cpp.i
 
-src/expl.s: src/expl.cpp.s
-.PHONY : src/expl.s
+src/main.s: src/main.cpp.s
+.PHONY : src/main.s
 
 # target to generate assembly for a file
-src/expl.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/expl.cpp.s
-.PHONY : src/expl.cpp.s
+src/main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/main.cpp.s
+.PHONY : src/main.cpp.s
 
 # Help Target
 help:
@@ -234,18 +282,24 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... exp"
-	@echo "... src/WinTerm/event.o"
-	@echo "... src/WinTerm/event.i"
-	@echo "... src/WinTerm/event.s"
-	@echo "... src/WinTerm/privates.o"
-	@echo "... src/WinTerm/privates.i"
-	@echo "... src/WinTerm/privates.s"
+	@echo "... src/WinTerm/ansi/stdinReader.o"
+	@echo "... src/WinTerm/ansi/stdinReader.i"
+	@echo "... src/WinTerm/ansi/stdinReader.s"
+	@echo "... src/WinTerm/events/event.o"
+	@echo "... src/WinTerm/events/event.i"
+	@echo "... src/WinTerm/events/event.s"
+	@echo "... src/WinTerm/events/queue.o"
+	@echo "... src/WinTerm/events/queue.i"
+	@echo "... src/WinTerm/events/queue.s"
+	@echo "... src/WinTerm/misc/size.o"
+	@echo "... src/WinTerm/misc/size.i"
+	@echo "... src/WinTerm/misc/size.s"
 	@echo "... src/WinTerm/winTerm.o"
 	@echo "... src/WinTerm/winTerm.i"
 	@echo "... src/WinTerm/winTerm.s"
-	@echo "... src/expl.o"
-	@echo "... src/expl.i"
-	@echo "... src/expl.s"
+	@echo "... src/main.o"
+	@echo "... src/main.i"
+	@echo "... src/main.s"
 .PHONY : help
 
 
