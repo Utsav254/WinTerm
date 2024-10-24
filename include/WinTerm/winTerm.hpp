@@ -21,6 +21,9 @@ namespace winTerm
 	// use to bind event to quitting program
 	// set the return Code if required
 	void postQuitEvent(int returnCode) noexcept;
+
+	// use to bind event to send a paint message
+	void postPaintEvent() noexcept;
 	
 	// use to get events from event queue
 	// return value is 0 if QUIT message

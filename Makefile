@@ -225,6 +225,54 @@ src/WinTerm/misc/size.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/misc/size.cpp.s
 .PHONY : src/WinTerm/misc/size.cpp.s
 
+src/WinTerm/render/canvas.o: src/WinTerm/render/canvas.cpp.o
+.PHONY : src/WinTerm/render/canvas.o
+
+# target to build an object file
+src/WinTerm/render/canvas.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/render/canvas.cpp.o
+.PHONY : src/WinTerm/render/canvas.cpp.o
+
+src/WinTerm/render/canvas.i: src/WinTerm/render/canvas.cpp.i
+.PHONY : src/WinTerm/render/canvas.i
+
+# target to preprocess a source file
+src/WinTerm/render/canvas.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/render/canvas.cpp.i
+.PHONY : src/WinTerm/render/canvas.cpp.i
+
+src/WinTerm/render/canvas.s: src/WinTerm/render/canvas.cpp.s
+.PHONY : src/WinTerm/render/canvas.s
+
+# target to generate assembly for a file
+src/WinTerm/render/canvas.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/render/canvas.cpp.s
+.PHONY : src/WinTerm/render/canvas.cpp.s
+
+src/WinTerm/render/render.o: src/WinTerm/render/render.cpp.o
+.PHONY : src/WinTerm/render/render.o
+
+# target to build an object file
+src/WinTerm/render/render.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/render/render.cpp.o
+.PHONY : src/WinTerm/render/render.cpp.o
+
+src/WinTerm/render/render.i: src/WinTerm/render/render.cpp.i
+.PHONY : src/WinTerm/render/render.i
+
+# target to preprocess a source file
+src/WinTerm/render/render.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/render/render.cpp.i
+.PHONY : src/WinTerm/render/render.cpp.i
+
+src/WinTerm/render/render.s: src/WinTerm/render/render.cpp.s
+.PHONY : src/WinTerm/render/render.s
+
+# target to generate assembly for a file
+src/WinTerm/render/render.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/render/render.cpp.s
+.PHONY : src/WinTerm/render/render.cpp.s
+
 src/WinTerm/winTerm.o: src/WinTerm/winTerm.cpp.o
 .PHONY : src/WinTerm/winTerm.o
 
@@ -294,6 +342,12 @@ help:
 	@echo "... src/WinTerm/misc/size.o"
 	@echo "... src/WinTerm/misc/size.i"
 	@echo "... src/WinTerm/misc/size.s"
+	@echo "... src/WinTerm/render/canvas.o"
+	@echo "... src/WinTerm/render/canvas.i"
+	@echo "... src/WinTerm/render/canvas.s"
+	@echo "... src/WinTerm/render/render.o"
+	@echo "... src/WinTerm/render/render.i"
+	@echo "... src/WinTerm/render/render.s"
 	@echo "... src/WinTerm/winTerm.o"
 	@echo "... src/WinTerm/winTerm.i"
 	@echo "... src/WinTerm/winTerm.s"

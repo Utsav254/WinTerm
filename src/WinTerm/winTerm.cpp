@@ -73,6 +73,11 @@ namespace winTerm
 		shouldQuit.store(true);
 	}
 
+	void postPaintEvent() noexcept
+	{
+		pushEvent(event(event::PAINT , 0));
+	}
+
 	int getEvent(event& e) noexcept {
 		popEvent(e);
 		if(e.t_ == event::type::QUIT) return 0;

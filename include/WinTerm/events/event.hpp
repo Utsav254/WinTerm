@@ -8,6 +8,7 @@ namespace winTerm
 		enum type
 		{
 			KEYBOARD,		// param: character or keyboard enum
+			PAINT,			// param: TBD
 			RESIZE,			// param: don't care
 			QUIT,			// param: return code
 			NONE,			// param: don't care
