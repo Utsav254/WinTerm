@@ -17,17 +17,4 @@ namespace winTerm
 	// restore terminal settings and old terminal buffer
 	// must be called at exit for proper cleanup
 	void destroy();
-	
-	// use to bind event to quitting program
-	// set the return Code if required
-	void postQuitEvent(int returnCode) noexcept;
-
-	// use to bind event to send a paint message
-	void postPaintEvent() noexcept;
-	
-	// use to get events from event queue
-	// return value is 0 if QUIT message
-	// positive if no error
-	// negative if error
-	int getEvent(event& e) noexcept;
 };

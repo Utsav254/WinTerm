@@ -6,7 +6,7 @@
 
 namespace winTerm
 {
-	class canvas
+	class canvas final
 	{
 	public:
 		canvas(const unsigned int width , const unsigned int height) :
@@ -41,7 +41,7 @@ namespace winTerm
 		// will not modify character content of buffer
 		void setBackground(const fmt::color col) noexcept;
 		inline fmt::color getBackground() const noexcept { return background_; }
-		
+	
 		// add text to a window
 		// throw std::out_of_range if given string is completely out of range
 		// no automatic wrapping will simply cut string off at the end of the buffer
@@ -52,7 +52,7 @@ namespace winTerm
 		// throw std::out_of_range if given rect is completely out of range
 		// if escaping buffer, will cutoff at border
 		// set erase true if the rectangle should erase existing characters in specified area
-		void drawRect(const rect& rectangle , const fmt::color bg , const borderStyle bs , const bool erase);
+		void drawRect(const rect& rectangle , const fmt::color bg , const borderStyle bs , const bool erase) noexcept;
 		
 		// also use the template overload of the drawRect
 		// this uses constexpr for evaluating the characters required for each style
@@ -60,20 +60,29 @@ namespace winTerm
 		// calculate the boxborders 
 		// note: this will bloat your final compiled binary with additional templating
 		template <borderStyle style>
-		void drawRect(const rect& rectangle , const fmt::color bg , const bool erase) {
-
-			//if(rectangle.bottom > height_ || rectangle.right > width_)
-			//	throw std::out_of_range(
-			//	fmt::format("rectangle size({:d} , {:d}) out of range" , rectangle.right , rectangle.bottom)
-			//	);
-			
+		void drawRect(const rect& rectangle , const fmt::color bg , const bool erase) noexcept {
 			// fetch characters at comptime
 			constexpr auto borderChars = getBorderCharacters<style>();
 			// call normal non template function
 			drawRectangleImpl(borderChars , rectangle , bg , erase);
 		}
+		
+		// set the border of the window buffer with given border style
+		void setBorder(const borderStyle bs) noexcept;
+	
+		// set the border of the window with the border style determined at compile time
+		template <borderStyle style>
+		void setBorder() noexcept {
+			// fetch characters at comptime
+			constexpr auto borderChars = getBorderCharacters<style>();
+			// call normal non template function
+			drawBorderImpl(borderChars);
+		}
+	
 
 		void getBuffer(std::vector<std::vector<cell>>& buffer) const { buffer = buffer_; }
+
+		friend void renderCanvas();
 	
 	private:
 		// resize the buffer
@@ -82,8 +91,11 @@ namespace winTerm
 
 		// called by template function 
 		// extracted from template function to reduce duplication of code in compiled binary
-		void drawRectangleImpl(const std::array<wchar_t, 6>& border_chars , const rect& rectangle,
-								const fmt::color bg , const bool erase);
+		void drawRectangleImpl(const std::array<wchar_t, 6>& borderChars , const rect& rectangle,
+								const fmt::color bg , const bool erase) noexcept;
+	
+		// called by border functions
+		void drawBorderImpl(const std::array<wchar_t , 6>& borderChars) noexcept;
 
 		template <borderStyle style>
 		constexpr std::array<wchar_t, 6> getBorderCharacters() {

@@ -1,7 +1,7 @@
 #include "WinTerm/winTerm.hpp"
 #include "WinTerm/ansi/stdinReader.hpp"
-#include "WinTerm/events/queue.hpp"
 #include "WinTerm/misc/size.hpp"
+#include "WinTerm/render/render.hpp"
 #include <csignal>
 #include <iostream>
 #include <termios.h>
@@ -39,7 +39,8 @@ namespace winTerm
 		// move cursor to home position
 		char moveCursorHome[4] = "\x1b[H";
 		write(STDOUT_FILENO , moveCursorHome , sizeof(moveCursorHome));
-
+		
+		renderThread = std::thread(&winTerm::renderCanvas);
 		stdinReaderThread = std::thread(&winTerm::stdinReader);
 	}
 
@@ -50,9 +51,15 @@ namespace winTerm
 			std::cout << "there is a bug somewhere...\r" << std::endl;
 		}
 
-		// join event handling thread
+		// set quitting flag high
 		shouldQuit.store(true);
+
+		// notify all awaiting condvars
+		endMessage();
+		endRender();
+
 		if(stdinReaderThread .joinable()) stdinReaderThread.join();
+		if(renderThread .joinable()) renderThread.join();
 		
 		// restore original terminal settings
 		tcsetattr(STDIN_FILENO , TCSAFLUSH , &origTermios);
@@ -65,23 +72,4 @@ namespace winTerm
 		write(STDOUT_FILENO , restoreBufferEsc , sizeof(restoreBufferEsc));
 
 	}
-
-
-	void postQuitEvent(int returnCode) noexcept
-	{
-		pushEvent(event(event::QUIT , returnCode));
-		shouldQuit.store(true);
-	}
-
-	void postPaintEvent() noexcept
-	{
-		pushEvent(event(event::PAINT , 0));
-	}
-
-	int getEvent(event& e) noexcept {
-		popEvent(e);
-		if(e.t_ == event::type::QUIT) return 0;
-		else return 1;
-	}
-
 }

@@ -177,30 +177,6 @@ src/WinTerm/events/event.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/events/event.cpp.s
 .PHONY : src/WinTerm/events/event.cpp.s
 
-src/WinTerm/events/queue.o: src/WinTerm/events/queue.cpp.o
-.PHONY : src/WinTerm/events/queue.o
-
-# target to build an object file
-src/WinTerm/events/queue.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/events/queue.cpp.o
-.PHONY : src/WinTerm/events/queue.cpp.o
-
-src/WinTerm/events/queue.i: src/WinTerm/events/queue.cpp.i
-.PHONY : src/WinTerm/events/queue.i
-
-# target to preprocess a source file
-src/WinTerm/events/queue.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/events/queue.cpp.i
-.PHONY : src/WinTerm/events/queue.cpp.i
-
-src/WinTerm/events/queue.s: src/WinTerm/events/queue.cpp.s
-.PHONY : src/WinTerm/events/queue.s
-
-# target to generate assembly for a file
-src/WinTerm/events/queue.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/exp.dir/build.make CMakeFiles/exp.dir/src/WinTerm/events/queue.cpp.s
-.PHONY : src/WinTerm/events/queue.cpp.s
-
 src/WinTerm/misc/size.o: src/WinTerm/misc/size.cpp.o
 .PHONY : src/WinTerm/misc/size.o
 
@@ -336,9 +312,6 @@ help:
 	@echo "... src/WinTerm/events/event.o"
 	@echo "... src/WinTerm/events/event.i"
 	@echo "... src/WinTerm/events/event.s"
-	@echo "... src/WinTerm/events/queue.o"
-	@echo "... src/WinTerm/events/queue.i"
-	@echo "... src/WinTerm/events/queue.s"
 	@echo "... src/WinTerm/misc/size.o"
 	@echo "... src/WinTerm/misc/size.i"
 	@echo "... src/WinTerm/misc/size.s"

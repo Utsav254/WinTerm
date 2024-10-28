@@ -1,67 +1,42 @@
 #include <unistd.h>
-#include <vector>
+#include "WinTerm/render/render.hpp"
 #include "WinTerm/winTerm.hpp"
 #include "WinTerm/render/canvas.hpp"
-#include "WinTerm/render/cell.hpp"
 #include "WinTerm/render/misc.hpp"
 #include <cwchar>
 
-int rectRight = 2;
-int rectBottom = 2;
-
-void termProc(const winTerm::event& e) {
-	switch (e.t_) {
-		case winTerm::event::KEYBOARD:
-			switch(e.param_) {
-				case static_cast<long>(winTerm::keyboard::CTRL_Q):
-					winTerm::postQuitEvent(0);
+void termProc(std::unique_ptr<winTerm::message> msg) {
+	switch (msg->t) {
+		case winTerm::message::KEYBOARD:
+			switch(std::get<winTerm::keyboard>(msg->param)) {
+				case winTerm::keyboard::CTRL_Q:
+					winTerm::postQuitMessage(0);
 					break;
-				case static_cast<long>(winTerm::keyboard::ARROW_RIGHT):
-					rectRight++;
+				case winTerm::keyboard::ARROW_RIGHT:
 					break;
-				case static_cast<long>(winTerm::keyboard::ARROW_DOWN):
-					rectBottom++;
-					break;					
+				case winTerm::keyboard::ARROW_DOWN:
+					break;
+				default:
+					break;
 			}
-			winTerm::postPaintEvent();
+			winTerm::postPaintMessage();
 			break;
-        case winTerm::event::PAINT:
+        case winTerm::message::PAINT:
 			{
-				setlocale(LC_ALL, "");
-				char moveCursorHome[4] = "\x1b[H";
-				write(STDOUT_FILENO , moveCursorHome , sizeof(moveCursorHome));
-				
-				constexpr unsigned int height = 35 , width = 50;
-				
-				winTerm::canvas cv(width , height);
-				cv.clear(winTerm::cell(L'@'));
-
-				winTerm::rect r(1 , 1 , rectRight , rectBottom);
-
-				cv.drawRect<winTerm::borderStyle::THIN>(r , fmt::color::black , false);
-
-				std::vector<std::vector<winTerm::cell>> buffer;
-				cv.getBuffer(buffer);
-
-				char mbstr[128];
-			
-				for(int j = 0 ; j < (int)buffer.size() ; j++) {
-					for (int i = 0 ; i < (int)buffer[j].size() ; i++) {
-						int bytes = wctomb(mbstr, buffer[j][i].character);
-						if(bytes == -1) throw std::runtime_error("wctomb error bytes -1");
-						write(STDOUT_FILENO, mbstr, bytes);
-
-					}
-					char newline[] = "\n\r";
-					write(STDOUT_FILENO , newline , 2);
-				}
+				unsigned int height = 35, width = 100;
+				std::unique_ptr<winTerm::canvas> cv = winTerm::beginPaint(width , height);
+				cv->setBackground(static_cast<fmt::color>(0x1a2c4a));
+				cv->setBorder<winTerm::borderStyle::THICK>();
+				cv->addText(" Window Tittle Here " , 0 , width / 2 - 21 / 2 , fmt::color::white,
+					static_cast<fmt::color>(0x1a2c4a) , fmt::emphasis::bold);
+				cv->drawRect<winTerm::borderStyle::THIN>(winTerm::rect(2 , 2 , 97 , 20) , fmt::color::slate_gray , false);
+				endPaint(std::move(cv));
 			}
 			break;
-		case winTerm::event::RESIZE:
-		case winTerm::event::NONE:
-        case winTerm::event::QUIT:
-            break;
-          break;
+		case winTerm::message::RESIZE:
+		case winTerm::message::NONE:
+        case winTerm::message::QUIT:
+          	break;
         }
 }
 
@@ -69,16 +44,17 @@ int main()
 {
 	winTerm::initialise();
 
-	winTerm::event e;
+	std::unique_ptr<winTerm::message> msg;
 	int getEventResult;
-	while ((getEventResult = winTerm::getEvent(e)))
+
+	while ((getEventResult = winTerm::getMessage(msg)))
 	{
-		termProc(e);
+		if(msg) termProc(std::move(msg)); // this will be replaces by a dispatcher which will check for nullptr
 	}
 
 	winTerm::destroy();
 	
-	if(getEventResult == 0) return e.param_;
+	if(getEventResult == 0) return static_cast<int>(std::get<long>(msg->param));
 	else return EXIT_FAILURE;
 }
 
