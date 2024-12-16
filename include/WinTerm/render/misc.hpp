@@ -21,10 +21,10 @@ namespace winTerm
 	};
 
 	enum class borderStyle{
-		NONE,
-		THICK,
-		THIN,
-		DOUBLE
+		NONE = 0,
+		THICK = 6,
+		THIN = 12,
+		DOUBLE = 18
 	};
 
 }

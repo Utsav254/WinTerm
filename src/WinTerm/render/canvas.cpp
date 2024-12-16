@@ -64,56 +64,34 @@ namespace winTerm
 
 	void canvas::drawRect(const rect& rectangle , const fmt::color bg , const borderStyle bs , const bool erase) noexcept
 	{
-		std::array<wchar_t , 6> borderChars;
-		switch(bs) {
-			case borderStyle::NONE:
-				borderChars = {' ' , ' ' , ' ' , ' ' , ' ' , ' '};
-				break;
-			case borderStyle::THIN:
-				borderChars = {L'─', L'│', L'┌', L'┐', L'└', L'┘'};
-				break;
-			case borderStyle::THICK:
-				borderChars = {L'━', L'┃', L'┏', L'┓', L'┗', L'┛'};
-				break;
-			case borderStyle::DOUBLE:
-				borderChars = {L'═', L'║', L'╔', L'╗', L'╚', L'╝'};
-				break;
-			default:
-				borderChars = {'?', '?', '?', '?', '?', '?'};
-				break;
-		}
-		drawRectangleImpl(borderChars , rectangle , bg , erase);
-    }
-
-	void canvas::drawRectangleImpl(const std::array<wchar_t, 6>& border_chars , const rect& rectangle,
-									const fmt::color bg , const bool erase) noexcept {
+		unsigned int offset = static_cast<unsigned int>(bs);
 
 		for (unsigned int y = rectangle.top; y <= rectangle.bottom; ++y) {
 			if(y >= height_) break;
 			for (unsigned int x = rectangle.left; x <= rectangle.right; ++x) {
 				if(x >= width_) break;
 				if (y == rectangle.top && x == rectangle.left) {
-					buffer_[y][x].character = border_chars[2]; // Top-left corner
+					buffer_[y][x].character = borderChars[offset+2]; // Top-left corner
 					buffer_[y][x].bgColor = bg;
 				}
 				else if (y == rectangle.top && x == rectangle.right) {
-					buffer_[y][x].character = border_chars[3]; // Top-right corner
+					buffer_[y][x].character = borderChars[offset+3]; // Top-right corner
 					buffer_[y][x].bgColor = bg;
 				}
 				else if (y == rectangle.bottom && x == rectangle.left) {
-					buffer_[y][x].character = border_chars[4]; // Bottom-left corner
+					buffer_[y][x].character = borderChars[offset+4]; // Bottom-left corner
 					buffer_[y][x].bgColor = bg;
 				}
 				else if (y == rectangle.bottom && x == rectangle.right) {
-					buffer_[y][x].character = border_chars[5]; // Bottom-right corner
+					buffer_[y][x].character = borderChars[offset+5]; // Bottom-right corner
 					buffer_[y][x].bgColor = bg;
 				}
 				else if (x == rectangle.left || x == rectangle.right) {
-					buffer_[y][x].character = border_chars[1]; // Vertical border
+					buffer_[y][x].character = borderChars[offset+1]; // Vertical border
 					buffer_[y][x].bgColor = bg;
 				}
 				else if (y == rectangle.top || y == rectangle.bottom) {
-					buffer_[y][x].character = border_chars[0]; // Horizontal border
+					buffer_[y][x].character = borderChars[offset+0]; // Horizontal border
 					buffer_[y][x].bgColor = bg;
 				}
 
@@ -128,49 +106,28 @@ namespace winTerm
 				}
 			}
 		}
-	}
+    }
 
 	void canvas::setBorder(const borderStyle bs) noexcept
 	{
-		std::array<wchar_t , 6> borderChars;
-		switch(bs) {
-			case borderStyle::NONE:
-				borderChars = {' ' , ' ' , ' ' , ' ' , ' ' , ' '};
-				break;
-			case borderStyle::THIN:
-				borderChars = {L'─', L'│', L'┌', L'┐', L'└', L'┘'};
-				break;
-			case borderStyle::THICK:
-				borderChars = {L'━', L'┃', L'┏', L'┓', L'┗', L'┛'};
-				break;
-			case borderStyle::DOUBLE:
-				borderChars = {L'═', L'║', L'╔', L'╗', L'╚', L'╝'};
-				break;
-			default:
-				borderChars = {'?', '?', '?', '?', '?', '?'};
-				break;
-		}
-		drawBorderImpl(borderChars);
-    }
-
-	void canvas::drawBorderImpl(const std::array<wchar_t , 6>& borderChars) noexcept
-	{
+		unsigned int offset = static_cast<unsigned int>(bs);
 		// corners 
-		buffer_[0][0].character = borderChars[2];
-		buffer_[0][width_ - 1].character = borderChars[3];
-		buffer_[height_ - 1][0].character = borderChars[4];
-		buffer_[height_ - 1][width_ - 1].character = borderChars[5];
+		buffer_[0][0].character = borderChars[offset+2];
+		buffer_[0][width_ - 1].character = borderChars[offset+3];
+		buffer_[height_ - 1][0].character = borderChars[offset+4];
+		buffer_[height_ - 1][width_ - 1].character = borderChars[offset+5];
 		
 		// horizontal borders
-		for(unsigned int i = 1 ; i < width_ - 1 ; i++) buffer_[0][i].character = borderChars[0];
-		for(unsigned int i = 1 ; i < width_ - 1 ; i++) buffer_[height_ - 1][i].character = borderChars[0];
+		for(unsigned int i = 1 ; i < width_ - 1 ; i++) {
+			buffer_[0][i].character = borderChars[offset];
+ 			buffer_[height_ - 1][i].character = borderChars[offset];
+		}
 		
 		// vertical borders
 		for(unsigned int j = 1 ; j < height_ - 1 ; j++) {
-			buffer_[j][0].character = borderChars[1];
-			buffer_[j][width_ - 1].character = borderChars[1];
+			buffer_[j][0].character = borderChars[offset+1];
+			buffer_[j][width_ - 1].character = borderChars[offset+1];
 		}
-	}
-
+    }
 
 }

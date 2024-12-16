@@ -26,10 +26,10 @@ void termProc(std::unique_ptr<winTerm::message> msg) {
 				unsigned int height = 35, width = 100;
 				std::unique_ptr<winTerm::canvas> cv = winTerm::beginPaint(width , height);
 				cv->setBackground(static_cast<fmt::color>(0x1a2c4a));
-				cv->setBorder<winTerm::borderStyle::THICK>();
+				cv->setBorder(winTerm::borderStyle::DOUBLE);
 				cv->addText(" Window Tittle Here " , 0 , width / 2 - 21 / 2 , fmt::color::white,
 					static_cast<fmt::color>(0x1a2c4a) , fmt::emphasis::bold);
-				cv->drawRect<winTerm::borderStyle::THIN>(winTerm::rect(2 , 2 , 97 , 20) , fmt::color::slate_gray , false);
+				cv->drawRect(winTerm::rect(2 , 2 , 97 , 20) , fmt::color::slate_gray , winTerm::borderStyle::THIN , false);
 				endPaint(std::move(cv));
 			}
 			break;

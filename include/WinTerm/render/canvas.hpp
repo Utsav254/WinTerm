@@ -4,6 +4,7 @@
 #include "cell.hpp"
 #include <array>
 
+
 namespace winTerm
 {
 	class canvas final
@@ -54,31 +55,8 @@ namespace winTerm
 		// set erase true if the rectangle should erase existing characters in specified area
 		void drawRect(const rect& rectangle , const fmt::color bg , const borderStyle bs , const bool erase) noexcept;
 		
-		// also use the template overload of the drawRect
-		// this uses constexpr for evaluating the characters required for each style
-		// this is a trial feature which makes use a compile time constexpr to 
-		// calculate the boxborders 
-		// note: this will bloat your final compiled binary with additional templating
-		template <borderStyle style>
-		void drawRect(const rect& rectangle , const fmt::color bg , const bool erase) noexcept {
-			// fetch characters at comptime
-			constexpr auto borderChars = getBorderCharacters<style>();
-			// call normal non template function
-			drawRectangleImpl(borderChars , rectangle , bg , erase);
-		}
-		
 		// set the border of the window buffer with given border style
 		void setBorder(const borderStyle bs) noexcept;
-	
-		// set the border of the window with the border style determined at compile time
-		template <borderStyle style>
-		void setBorder() noexcept {
-			// fetch characters at comptime
-			constexpr auto borderChars = getBorderCharacters<style>();
-			// call normal non template function
-			drawBorderImpl(borderChars);
-		}
-	
 
 		void getBuffer(std::vector<std::vector<cell>>& buffer) const { buffer = buffer_; }
 
@@ -89,36 +67,19 @@ namespace winTerm
 		// this will ruin the data held in the vector
 		void resize(const int newWidth , const int newHeight) noexcept;
 
-		// called by template function 
-		// extracted from template function to reduce duplication of code in compiled binary
-		void drawRectangleImpl(const std::array<wchar_t, 6>& borderChars , const rect& rectangle,
-								const fmt::color bg , const bool erase) noexcept;
-	
-		// called by border functions
-		void drawBorderImpl(const std::array<wchar_t , 6>& borderChars) noexcept;
-
-		template <borderStyle style>
-		constexpr std::array<wchar_t, 6> getBorderCharacters() {
-			if constexpr (style == borderStyle::NONE) {
-				return {' ' , ' ' , ' ' , ' ' , ' ' , ' '};
-			}
-			else if constexpr (style == borderStyle::THIN) {
-				return {L'─', L'│', L'┌', L'┐', L'└', L'┘'};
-			}
-			else if constexpr (style == borderStyle::THICK) {
-				return {L'━', L'┃', L'┏', L'┓', L'┗', L'┛'};
-			}
-			else if constexpr (style == borderStyle::DOUBLE) {
-				return {L'═', L'║', L'╔', L'╗', L'╚', L'╝'};
-			}
-			else {
-				return {'?', '?', '?', '?', '?', '?'};
-			}
-		}
-
 		unsigned int width_ , height_;
 		std::vector<std::vector<cell>> buffer_;
-
 		fmt::color background_;
+
+		static constexpr std::array<wchar_t , 6 * 4>borderChars =
+		{
+			L' ' , L' ' , L' ' , L' ' , L' ' , L' ', // borderStyles::NONE
+
+			L'─' , L'│' , L'┌' , L'┐' , L'└' , L'┘', // borderStyles::THIN
+
+			L'━' , L'┃' , L'┏' , L'┓' , L'┗' , L'┛', // borderStyles::THICK
+
+			L'═' , L'║' , L'╔' , L'╗' , L'╚' , L'╝', // borderStyle::DOUBLE
+		};
 	};
 }
