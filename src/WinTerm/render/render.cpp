@@ -1,12 +1,11 @@
 #include "WinTerm/render/render.hpp"
 #include "WinTerm/ansi/stdinReader.hpp"
-#include "generics/boundedQueue.hpp"
-#include <iostream>
+#include "generics/channel.hpp"
 
 namespace winTerm
 {
 	// render queue entries ....
-	boundedQueue<canvas , numCanvas> renderQueue;
+	channel<canvas , numCanvas> renderQueue;
 	std::thread renderThread;	
 	
 	void endRender()

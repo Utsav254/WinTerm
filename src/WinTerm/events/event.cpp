@@ -1,13 +1,12 @@
 #include "WinTerm/events/event.hpp"
 #include "WinTerm/events/messages.hpp"
-#include "generics/boundedQueue.hpp"
 #include "WinTerm/ansi/stdinReader.hpp"
 
 namespace winTerm
 {
 	// eventQueue not exposed 
 	// holds all events
-	boundedQueue<message , messageQueueSize> messageQueue;
+	channel<message , messageQueueSize> messageQueue;
 
 	void postQuitMessage(int returnCode)
 	{

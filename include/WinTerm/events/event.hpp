@@ -1,6 +1,5 @@
 #pragma once
-
-#include "generics/boundedQueue.hpp"
+#include "generics/channel.hpp"
 #include "messages.hpp"
 #include <cstddef>
 
@@ -8,7 +7,7 @@ namespace winTerm
 {
 	constexpr std::size_t messageQueueSize = 64;
 
-	extern boundedQueue<message , messageQueueSize> messageQueue;
+	extern channel<message , messageQueueSize> messageQueue;
 	
 	// use to bind message to quitting program
 	// set the return Code if required

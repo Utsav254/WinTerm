@@ -1,9 +1,7 @@
-#include <unistd.h>
 #include "WinTerm/render/render.hpp"
 #include "WinTerm/winTerm.hpp"
 #include "WinTerm/render/canvas.hpp"
 #include "WinTerm/render/misc.hpp"
-#include <cwchar>
 
 void termProc(std::unique_ptr<winTerm::message> msg) {
 	switch (msg->t) {
@@ -23,13 +21,18 @@ void termProc(std::unique_ptr<winTerm::message> msg) {
 			break;
         case winTerm::message::PAINT:
 			{
-				unsigned int height = 35, width = 100;
-				std::unique_ptr<winTerm::canvas> cv = winTerm::beginPaint(width , height);
+				const unsigned int height = 35, width = 100;
+
+				auto cv = winTerm::beginPaint(width , height);
 				cv->setBackground(static_cast<fmt::color>(0x1a2c4a));
 				cv->setBorder(winTerm::borderStyle::DOUBLE);
+
 				cv->addText(" Window Tittle Here " , 0 , width / 2 - 21 / 2 , fmt::color::white,
 					static_cast<fmt::color>(0x1a2c4a) , fmt::emphasis::bold);
-				cv->drawRect(winTerm::rect(2 , 2 , 97 , 20) , fmt::color::slate_gray , winTerm::borderStyle::THIN , false);
+
+				cv->drawRect(winTerm::rect(2 , 2 , 97 , 20) , 
+				 	fmt::color::slate_gray , winTerm::borderStyle::THIN , false);
+
 				endPaint(std::move(cv));
 			}
 			break;

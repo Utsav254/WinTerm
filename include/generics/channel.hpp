@@ -1,27 +1,20 @@
 #pragma once
-
 #include <array>
 #include <memory>
 #include <mutex>
 #include <condition_variable>
 
-// bounded queue template class
-// will hold unique_ptrs of the specifier type
-// intended for multithreaded environments
-// no exceptions are thrown
+
 template <typename T , std::size_t N>
-class boundedQueue
+class channel
 {
 public:
-	boundedQueue() noexcept : head_(0) , tail_(0) , count_(0) {}
-	~boundedQueue() noexcept
+	channel() noexcept : head_(0) , tail_(0) , count_(0) {}
+	~channel() noexcept
 	{
 		clear();
 	}
 	
-	// push an element into the queue
-	// will std::move the element into the queue
-	// return a false on failure
 	bool push(std::unique_ptr<T> inPtr) noexcept
 	{
 		std::unique_lock<std::mutex> lock(mtx_);
@@ -37,9 +30,6 @@ public:
 		return true;
 	}
 	
-	// emplace an element into the queue
-	// return false on failure
-	// throw through std::make_unique or the conustructor of object
 	template <typename ... Args>
 	bool emplace(Args&& ... args)
 	{
@@ -56,10 +46,6 @@ public:
 		return true;
 	}
 	
-	// pop and element from the queue
-	// aquire ownership of the front most element in queue
-	// will wait and block if queue is empty
-	// safe to assume returned value is not nullptr
 	std::unique_ptr<T> pop(std::atomic<bool>& override) noexcept
 	{
 		std::unique_lock<std::mutex> lock(mtx_);
@@ -72,7 +58,6 @@ public:
 		return ptr;
 	}
 	
-	// clear the queue
 	void clear() noexcept
 	{
 		std::unique_lock<std::mutex> lock(mtx_);
@@ -84,8 +69,7 @@ public:
 		count_ = 0;
 		condVar_.notify_all();
 	}
-	
-	// helper functions for checking queue status
+
 	inline bool isFull() const noexcept
 	{
 		std::unique_lock<std::mutex> lock(mtx_);
@@ -105,7 +89,7 @@ public:
 	}
 
 private:
-	// queue buffer
+
 	std::array<std::unique_ptr<T> , N> queue_;
 	
 	// vars for tracking queue state
