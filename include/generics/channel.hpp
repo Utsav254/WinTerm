@@ -1,104 +1,121 @@
 #pragma once
-#include <array>
-#include <memory>
+#include "generics/allocator.hpp"
 #include <mutex>
 #include <condition_variable>
+#include <array>
 
+template<typename T, std::size_t N>
+class channel final {
+private:
 
-template <typename T , std::size_t N>
-class channel
-{
+	memAlloc<T , N> allocator_;
+	std::array<handle<T> , N> queue_;
+
+	std::size_t head_  = 0, tail_ = 0, count_ = 0;
+
+	mutable std::mutex mutex_;
+	std::condition_variable isEmpty_ , isFull_;
+
 public:
-	channel() noexcept : head_(0) , tail_(0) , count_(0) {}
+
+	channel() = default;
+	
+	// will await for channel to get emptied
 	~channel() noexcept
 	{
-		clear();
+        std::unique_lock<std::mutex> lock(mutex_);
+        isFull_.wait(lock, [this](){ return count_ == 0; });
+        
+        for(handle<T>& h: queue_) {
+            h.reset();    
+        }
 	}
-	
-	bool push(std::unique_ptr<T> inPtr) noexcept
+
+	[[nodiscard]] inline handle<T> handleGet()
 	{
-		std::unique_lock<std::mutex> lock(mtx_);
-
-		if(count_ == N) return false;
-
-		queue_[head_] = std::move(inPtr);
-		head_ = (head_ + 1) % N;
-		count_++;
-
-		condVar_.notify_one();
-
-		return true;
+		return allocator_.allocate();
 	}
-	
-	template <typename ... Args>
-	bool emplace(Args&& ... args)
-	{
-		std::unique_lock<std::mutex> lock(mtx_);
 
-		if(count_ == N) return false;
+	template<typename ... Args>
+	[[nodiscard]] inline handle<T> handleGet(Args&& ... args)
+	{
+		return allocator_.allocate(std::forward<Args>(args)...);
+	}
+
+	void push(handle<T> inHandle) noexcept
+	{
+		std::unique_lock<std::mutex> lock(mutex_);
+		isFull_.wait(lock , [this](){ return count_ < N; }); 
 		
-		queue_[head_] = std::make_unique<T>(std::forward<Args>(args)...);
+		queue_[head_] = std::move(inHandle);
 		head_ = (head_ + 1) % N;
-		count_++;
+		++count_;
 
-		condVar_.notify_one();
-
-		return true;
+		isEmpty_.notify_one();
 	}
 	
-	std::unique_ptr<T> pop(std::atomic<bool>& override) noexcept
+	template<typename ... Args>
+	void emplace(Args&& ... args)
 	{
-		std::unique_lock<std::mutex> lock(mtx_);
-		condVar_.wait(lock , [&]{ return count_ > 0 || override.load(); });
+		std::unique_lock<std::mutex> lock(mutex_);
+		isFull_.wait(lock , [this]() { return count_ < N; }); 
+		
+		queue_[head_] = std::move(allocator_.allocate(std::forward<Args>(args)...));
+		head_ = (head_ + 1) % N;
+		++count_;
 
-		std::unique_ptr<T> ptr = std::move(queue_[tail_]);
+		isEmpty_.notify_one();
+	}
+
+	[[nodiscard]] handle<T> pop()
+	{
+		std::unique_lock<std::mutex> lock(mutex_);
+		isEmpty_.wait(lock , [this](){ return count_ > 0; });
+
+		handle<T> h = std::move(queue_[tail_]);
 		tail_ = (tail_ + 1) % N;
-		count_--;
+		--count_;
 
-		return ptr;
-	}
-	
-	void clear() noexcept
-	{
-		std::unique_lock<std::mutex> lock(mtx_);
-		for(unsigned int i = 0 ; i < N ; i++) {
-			queue_[i].reset();
-		}
-		head_ = 0;
-		tail_ = 0;
-		count_ = 0;
-		condVar_.notify_all();
+		isFull_.notify_one();
+
+		return h;
 	}
 
-	inline bool isFull() const noexcept
-	{
-		std::unique_lock<std::mutex> lock(mtx_);
-		return count_ == N;
-	}
+    void close()
+    {
+    }
 
-	inline bool isEmpty() const noexcept
+	std::size_t size() const
 	{
-		std::unique_lock<std::mutex> lock(mtx_);
-		return count_ == 0;
-	}
-	
-	inline std::size_t size() const noexcept
-	{
-		std::unique_lock<std::mutex> lock(mtx_);
+		std::lock_guard<std::mutex> lock(mutex_);
 		return count_;
 	}
 
-private:
+	bool empty() const
+	{
+		std::lock_guard<std::mutex> lock(mutex_);
+		return count_ == 0;
+	}
 
-	std::array<std::unique_ptr<T> , N> queue_;
-	
-	// vars for tracking queue state
-	std::size_t head_;
-	std::size_t tail_;
-	std::size_t count_;
+	bool full() const
+	{
+		std::lock_guard<std::mutex> lock(mutex_);
+		return count_ == N;
+	}
 
-	// threading members	
-	mutable std::mutex mtx_;
-	std::condition_variable condVar_;
+	constexpr std::size_t capacity() const
+	{
+		return N;
+	}
+
+	//
+	// future features i will try myself if i need include try push try emplace which wont neccassarily block
+	// they will return some code if unable to 
+	//
+	// force push object for high prioirty items which need to be pushed into the queue
+	//
+	// time out push and pop operations ??
+	//
+	// anyways these are just features im thinking of doing they are low priority as i say
+
 };
-

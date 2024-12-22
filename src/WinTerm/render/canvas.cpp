@@ -45,8 +45,6 @@ namespace winTerm
 			}
 		}
 		background_ = col;
-		// maybe needed but performance testing showed that for loop is better
-		// std::for_each(std::execution::par_unseq , buffer_.begin() , buffer_.end() , [col](cell& cl) {cl.bgColor = col;});	
 	}
 
 	void canvas::addText(const std::string& str , unsigned int row , unsigned int column , 
@@ -130,4 +128,45 @@ namespace winTerm
 		}
     }
 
+
+	void canvas::renderStringGenerate(std::string& out) const noexcept
+	{
+		char multiByteChar[4] = {0};
+
+		fmt::color currFg = buffer_[0][0].fgColor;
+		fmt::color currBg = buffer_[0][0].bgColor;
+		fmt::emphasis currEmphasis = buffer_[0][0].style;
+
+		// initialise ansi string for render
+		out += std::string(fmt::detail::make_background_color<char>(currBg)) +
+										std::string(fmt::detail::make_foreground_color<char>(currFg)) +
+										std::string(fmt::detail::make_emphasis<char>(currEmphasis));
+
+
+		for(int j = 0 ; j < (int)buffer_.size() ; j++) {
+			for (int i = 0 ; i < (int)buffer_[j].size() ; i++) {
+
+				int bytes = wctomb(multiByteChar , buffer_[j][i].character);
+				
+				if(buffer_[j][i].fgColor != currFg) {
+					currFg = buffer_[j][i].fgColor;
+					out += std::string(fmt::detail::make_foreground_color<char>(currFg));
+				}
+
+				if(buffer_[j][i].bgColor != currBg) {
+					currBg = buffer_[j][i].bgColor;
+					out += std::string(fmt::detail::make_background_color<char>(currBg));
+				}
+
+				if(buffer_[j][i].style != currEmphasis) {
+					currEmphasis = buffer_[j][i].style;
+					out += std::string(fmt::detail::make_emphasis<char>(currEmphasis));
+				}
+				
+				if(bytes > 0) { out.append(multiByteChar , bytes); }
+
+			}
+			out += renderStrGenResetSeq;
+		}
+	}
 }

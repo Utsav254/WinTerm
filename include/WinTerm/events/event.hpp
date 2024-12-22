@@ -16,13 +16,13 @@ namespace winTerm
 
 	// use to bind message to a painting operation
 	// return true on success and false on failure
-	bool postPaintMessage();
+	void postPaintMessage();
 	
 	// use to get events from event queue
 	// return value is 0 if QUIT message
 	// positive if no error
 	// negative if error
-	int getMessage(std::unique_ptr<message>& msg) noexcept;
+	int getMessage(handle<message>& msg) noexcept;
 
 	// used to clear out the message queue while quitting
 	// notifies all condVars to stop awaiting

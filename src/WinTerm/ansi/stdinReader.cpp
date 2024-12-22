@@ -1,6 +1,7 @@
 #include "WinTerm/ansi/stdinReader.hpp"
 #include "WinTerm/events/event.hpp"
 #include "WinTerm/events/messages.hpp"
+#include <pthread.h>
 
 namespace winTerm
 {
@@ -8,16 +9,17 @@ namespace winTerm
 	std::thread stdinReaderThread;
 	std::atomic <bool> shouldQuit(false);
 
-	std::unique_ptr<message> readParseEscapeSequence();
+	void readParseEscapeSequence();
 
 	void stdinReader() noexcept
 	{
+		pthread_setname_np(pthread_self() , "stdinreader");
 		while(!shouldQuit.load())
 		{
 			char c = 0;
 			read(STDIN_FILENO , &c , 1);
 			if(c == 27) {
-				messageQueue.push(readParseEscapeSequence());
+				readParseEscapeSequence();
 			}
 			else if(c != 0) {
 				messageQueue.emplace(message::KEYBOARD , static_cast<keyboard>(c));
@@ -30,7 +32,7 @@ namespace winTerm
 	// a better faster more maintable way 
 	// flex bison parser??
 	// throws for unhandled escape sequences
-	std::unique_ptr<message> readParseEscapeSequence()
+	void readParseEscapeSequence()
 	{
 		char seqBuffer[ansiEscSize_] = {0};
 		ssize_t n = read(STDIN_FILENO, seqBuffer, sizeof(seqBuffer));
@@ -39,7 +41,8 @@ namespace winTerm
 		if(n >= ansiEscSize_) throw std::runtime_error("ansi escape sequence overflow");
 		
 		if(n == 0) {
-			return std::make_unique<message>(message::KEYBOARD , keyboard::ESCAPE);
+			messageQueue.emplace(message::KEYBOARD , keyboard::ESCAPE);
+			return;
 		}
 		else {
 			switch(seqBuffer[0])
@@ -49,13 +52,20 @@ namespace winTerm
 					// numerical and tilda refer to keyboard events:
 					if(seqBuffer[1] >= '0' && seqBuffer[1] <= '9' && seqBuffer[2] == '~') {
 						switch(seqBuffer[1]) {
-							case '1': return std::make_unique<message>(message::KEYBOARD , keyboard::HOME);
-							case '3': return std::make_unique<message>(message::KEYBOARD , keyboard::DELETE);
-							case '4': return std::make_unique<message>(message::KEYBOARD , keyboard::END);
-							case '5': return std::make_unique<message>(message::KEYBOARD , keyboard::PAGE_UP);
-							case '6': return std::make_unique<message>(message::KEYBOARD , keyboard::PAGE_DOWN);
-							case '7': return std::make_unique<message>(message::KEYBOARD , keyboard::HOME);
-							case '8': return std::make_unique<message>(message::KEYBOARD , keyboard::END);
+							case '1': messageQueue.emplace(message::KEYBOARD , keyboard::HOME);
+								break;
+							case '3': messageQueue.emplace(message::KEYBOARD , keyboard::DELETE);
+								break;
+							case '4': messageQueue.emplace(message::KEYBOARD , keyboard::END);
+								break;
+							case '5': messageQueue.emplace(message::KEYBOARD , keyboard::PAGE_UP);
+								break;
+							case '6': messageQueue.emplace(message::KEYBOARD , keyboard::PAGE_DOWN);
+								break;
+							case '7': messageQueue.emplace(message::KEYBOARD , keyboard::HOME);
+								break;
+							case '8': messageQueue.emplace(message::KEYBOARD , keyboard::END);
+								break;
 							default: throw std::runtime_error("unhandled escape sequence: " + std::string(seqBuffer));
 						}
 					}
@@ -63,12 +73,18 @@ namespace winTerm
 					else {
 						switch(seqBuffer[1])
 						{
-							case 'A': return std::make_unique<message>(message::KEYBOARD , keyboard::ARROW_UP);
-							case 'B': return std::make_unique<message>(message::KEYBOARD , keyboard::ARROW_DOWN);
-							case 'C': return std::make_unique<message>(message::KEYBOARD , keyboard::ARROW_RIGHT);
-							case 'D': return std::make_unique<message>(message::KEYBOARD , keyboard::ARROW_LEFT);
-							case 'H': return std::make_unique<message>(message::KEYBOARD , keyboard::HOME);
-							case 'F': return std::make_unique<message>(message::KEYBOARD , keyboard::END);
+							case 'A': messageQueue.emplace(message::KEYBOARD , keyboard::ARROW_UP);
+								break;
+							case 'B': messageQueue.emplace(message::KEYBOARD , keyboard::ARROW_DOWN);
+								break;
+							case 'C': messageQueue.emplace(message::KEYBOARD , keyboard::ARROW_RIGHT);
+								break;
+							case 'D': messageQueue.emplace(message::KEYBOARD , keyboard::ARROW_LEFT);
+								break;
+							case 'H': messageQueue.emplace(message::KEYBOARD , keyboard::HOME);
+								break;
+							case 'F': messageQueue.emplace(message::KEYBOARD , keyboard::END);
+								break;
 							default: throw std::runtime_error("unhandled escape sequence: " + std::string(seqBuffer));
 						}
 					}
@@ -77,12 +93,18 @@ namespace winTerm
 				case 'O':
 					switch(seqBuffer[1])
 					{
-						case 'H': return std::make_unique<message>(message::KEYBOARD , keyboard::HOME);
-						case 'F': return std::make_unique<message>(message::KEYBOARD , keyboard::END);
-						case 'P': return std::make_unique<message>(message::KEYBOARD , keyboard::FN_1);
-						case 'Q': return std::make_unique<message>(message::KEYBOARD , keyboard::FN_2);
-						case 'R': return std::make_unique<message>(message::KEYBOARD , keyboard::FN_3);
-						case 'S': return std::make_unique<message>(message::KEYBOARD , keyboard::FN_4);
+						case 'H': messageQueue.emplace(message::KEYBOARD , keyboard::HOME);
+							break;
+						case 'F': messageQueue.emplace(message::KEYBOARD , keyboard::END);
+							break;
+						case 'P': messageQueue.emplace(message::KEYBOARD , keyboard::FN_1);
+							break;
+						case 'Q': messageQueue.emplace(message::KEYBOARD , keyboard::FN_2);
+							break;
+						case 'R': messageQueue.emplace(message::KEYBOARD , keyboard::FN_3);
+							break;
+						case 'S': messageQueue.emplace(message::KEYBOARD , keyboard::FN_4);
+							break;
 						default: throw std::runtime_error("unhandled escape sequence: " + std::string(seqBuffer));
 					}
 					break;

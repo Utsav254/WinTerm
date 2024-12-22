@@ -7,19 +7,42 @@
 
 namespace winTerm
 {
-	class canvas final
-	{
+	class canvas final {
+
+		friend void renderCanvas();
+
 	public:
+
+		enum class canvasMessage
+		{
+			OPTIMISE,
+			FORCE_RERENDER,
+			END,
+		};
+
+	public:
+		
+		// constructor for completely blank convas
+		// not reccomended
+		canvas(const canvasMessage message) :
+			message_(message),
+			renderStrGenResetSeq()
+		{}
+
 		canvas(const unsigned int width , const unsigned int height) :
 			width_(width) , height_(height),
-			buffer_(height , std::vector<cell>(width , cell()))
+			buffer_(height , std::vector<cell>(width , cell())),
+			message_(canvasMessage::OPTIMISE),
+			renderStrGenResetSeq("\x1b[1B\x1b[" + std::to_string(width_) + "D")
 		{
 			if(width < 1 || height < 1) throw std::out_of_range(fmt::format("invalid size({:d} , {:d})" , width , height));
 		}
 
 		canvas(const int width , const int height , const cell& cl) :
 			width_(width) , height_(height),
-			buffer_(height , std::vector<cell>(width , cl))
+			buffer_(height , std::vector<cell>(width , cl)),
+			message_(canvasMessage::OPTIMISE),
+			renderStrGenResetSeq("\x1b[1B\x1b[" + std::to_string(width_) + "D")
 		{
 			if(width < 1 || height < 1) throw std::out_of_range(fmt::format("invalid size({:d} , {:d})" , width , height));
 		}
@@ -58,18 +81,25 @@ namespace winTerm
 		// set the border of the window buffer with given border style
 		void setBorder(const borderStyle bs) noexcept;
 
-		void getBuffer(std::vector<std::vector<cell>>& buffer) const { buffer = buffer_; }
 
-		friend void renderCanvas();
-	
+		//
+		void getBuffer(std::vector<std::vector<cell>>& buffer) const { buffer = buffer_; }
+		void updateRenderScheme(canvasMessage in) noexcept { message_ = in; }
+
 	private:
 		// resize the buffer
 		// this will ruin the data held in the vector
 		void resize(const int newWidth , const int newHeight) noexcept;
 
+		//generate render string based on render schema
+		void renderStringGenerate(std::string& out) const noexcept;
+
 		unsigned int width_ , height_;
 		std::vector<std::vector<cell>> buffer_;
 		fmt::color background_;
+		canvasMessage message_;
+
+		const std::string renderStrGenResetSeq;
 
 		static constexpr std::array<wchar_t , 6 * 4>borderChars =
 		{

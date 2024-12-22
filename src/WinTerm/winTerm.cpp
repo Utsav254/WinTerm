@@ -12,6 +12,8 @@ namespace winTerm
 	struct termios origTermios;
 	int columns , rows;
 
+	char *oldLocale;
+
 	void initialise ()
 	{
 		// get current terminal settings
@@ -32,6 +34,8 @@ namespace winTerm
 		rawTermios.c_cc[VTIME] = 1;
 		tcsetattr(STDIN_FILENO , TCSAFLUSH , &rawTermios);
 
+		oldLocale = std::setlocale(LC_ALL, "");
+
 		updateTerminalSize();
 
 		// std::signal(SIGWINCH , &signalHandler);
@@ -46,20 +50,10 @@ namespace winTerm
 
 	void destroy()
 	{
-		if(!shouldQuit.load()) {
-			std::cout << "programm is attempting to quit before postQuitEvent() was called\r" << std::endl;
-			std::cout << "there is a bug somewhere...\r" << std::endl;
-		}
-
-		// set quitting flag high
-		shouldQuit.store(true);
-
-		// notify all awaiting condvars
-		endMessage();
-		endRender();
-
 		if(stdinReaderThread .joinable()) stdinReaderThread.join();
 		if(renderThread .joinable()) renderThread.join();
+
+		std::setlocale(LC_ALL, oldLocale);
 		
 		// restore original terminal settings
 		tcsetattr(STDIN_FILENO , TCSAFLUSH , &origTermios);

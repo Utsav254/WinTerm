@@ -31,5 +31,5 @@ target_link_libraries(exp PRIVATE fmt::fmt)
 target_compile_options(exp PUBLIC -fsanitize=address)
 target_link_options(exp PUBLIC -fsanitize=address)
 
-target_compile_options(exp PUBLIC -Wall -Wextra -Wpedantic)
+target_compile_options(exp PUBLIC -Wall -Wextra -pedantic)
 

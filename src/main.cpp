@@ -3,21 +3,18 @@
 #include "WinTerm/render/canvas.hpp"
 #include "WinTerm/render/misc.hpp"
 
-void termProc(std::unique_ptr<winTerm::message> msg) {
+void termProc(handle<winTerm::message> msg) {
 	switch (msg->t) {
 		case winTerm::message::KEYBOARD:
-			switch(std::get<winTerm::keyboard>(msg->param)) {
+			switch(std::get<winTerm::keyboard>(msg->param))
+			{
 				case winTerm::keyboard::CTRL_Q:
 					winTerm::postQuitMessage(0);
 					break;
-				case winTerm::keyboard::ARROW_RIGHT:
-					break;
-				case winTerm::keyboard::ARROW_DOWN:
-					break;
 				default:
+					winTerm::postPaintMessage();
 					break;
 			}
-			winTerm::postPaintMessage();
 			break;
         case winTerm::message::PAINT:
 			{
@@ -31,7 +28,7 @@ void termProc(std::unique_ptr<winTerm::message> msg) {
 					static_cast<fmt::color>(0x1a2c4a) , fmt::emphasis::bold);
 
 				cv->drawRect(winTerm::rect(2 , 2 , 97 , 20) , 
-				 	fmt::color::slate_gray , winTerm::borderStyle::THIN , false);
+					fmt::color::slate_gray , winTerm::borderStyle::THIN , false);
 
 				endPaint(std::move(cv));
 			}
@@ -47,7 +44,7 @@ int main()
 {
 	winTerm::initialise();
 
-	std::unique_ptr<winTerm::message> msg;
+	handle<winTerm::message> msg;
 	int getEventResult;
 
 	while ((getEventResult = winTerm::getMessage(msg)))

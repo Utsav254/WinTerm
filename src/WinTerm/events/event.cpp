@@ -1,6 +1,7 @@
 #include "WinTerm/events/event.hpp"
 #include "WinTerm/events/messages.hpp"
 #include "WinTerm/ansi/stdinReader.hpp"
+#include "WinTerm/render/render.hpp"
 
 namespace winTerm
 {
@@ -11,27 +12,21 @@ namespace winTerm
 	void postQuitMessage(int returnCode)
 	{
 		shouldQuit.store(true);
-		while(!messageQueue.emplace(message::QUIT , returnCode)) {
-			messageQueue.pop(shouldQuit);
-		}
+		renderQueue.emplace(canvas::canvasMessage::END);
+		messageQueue.emplace(message::QUIT , returnCode);
 	}
 
-	bool postPaintMessage()
+	void postPaintMessage()
 	{
-		return messageQueue.emplace(message::PAINT , 0);
+		messageQueue.emplace(message::PAINT , 0);
 	}
 
-	int getMessage(std::unique_ptr<message>& msg) noexcept {
+	int getMessage(handle<message>& msg) noexcept {
 
-		msg = messageQueue.pop(shouldQuit);
+		msg = messageQueue.pop();
 
 		if(msg == nullptr) return -1;
 		else if(msg->t == message::QUIT) return 0;
 		else return 1;
-	}
-
-	void endMessage()
-	{
-		messageQueue.clear();
 	}
 }
