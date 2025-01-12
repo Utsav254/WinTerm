@@ -1,6 +1,6 @@
 #pragma once
 #include "generics/channel.hpp"
-#include "messages.hpp"
+#include "WinTerm/events/messages.hpp"
 #include <cstddef>
 
 namespace winTerm

@@ -1,9 +1,7 @@
 #pragma once
 #include <vector>
-#include "WinTerm/render/misc.hpp"
-#include "cell.hpp"
+#include "WinTerm/render/renderItems.hpp"
 #include <array>
-
 
 namespace winTerm
 {

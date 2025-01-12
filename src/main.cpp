@@ -1,7 +1,7 @@
 #include "WinTerm/render/render.hpp"
 #include "WinTerm/winTerm.hpp"
 #include "WinTerm/render/canvas.hpp"
-#include "WinTerm/render/misc.hpp"
+#include "WinTerm/render/renderItems.hpp"
 
 void termProc(handle<winTerm::message> msg) {
 	switch (msg->t) {

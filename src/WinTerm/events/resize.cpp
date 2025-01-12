@@ -1,4 +1,4 @@
-#include "WinTerm/misc/size.hpp"
+#include "WinTerm/events/resize.hpp"
 #include <stdexcept>
 #include <sys/ioctl.h>
 #include <unistd.h>

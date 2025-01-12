@@ -1,6 +1,4 @@
 #pragma once
-#include "WinTerm/render/misc.hpp"
-#include <memory>
 #include <variant>
 
 namespace winTerm
@@ -20,7 +18,7 @@ namespace winTerm
 		};
 
 		type t;
-		std::variant<keyboard , std::unique_ptr<rect> , long> param;
+		std::variant<keyboard , long> param;
 
 		message() noexcept : t(NONE) , param(0) {}
 

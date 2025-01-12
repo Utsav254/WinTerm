@@ -1,7 +1,7 @@
 #include "WinTerm/winTerm.hpp"
 #include "WinTerm/ansi/stdinReader.hpp"
-#include "WinTerm/misc/size.hpp"
 #include "WinTerm/render/render.hpp"
+#include "WinTerm/events/resize.hpp"
 #include <csignal>
 #include <iostream>
 #include <termios.h>
