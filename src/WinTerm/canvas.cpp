@@ -1,9 +1,9 @@
-#include "WinTerm/render/canvas.hpp"
+#include "WinTerm/canvas.hpp"
 #include <stdexcept>
 #include <array>
 
-namespace winTerm
-{
+namespace winTermNameSpace {
+
 	void canvas::resize(const int newWidth , const int newHeight) noexcept
 	{
 		buffer_.resize(newHeight , std::vector<cell>(newWidth , cell()));	
@@ -15,7 +15,7 @@ namespace winTerm
 			return buffer_[row][column];
 		}
 		else {
-			throw std::out_of_range(fmt::format("at: index ({:d} , {:d}) out of range" , row , column));
+			throw std::out_of_range(std::format("at: index ({:d} , {:d}) out of range" , row , column));
 		}
 	}
 
@@ -37,7 +37,7 @@ namespace winTerm
 		}
 	}
 
-	void canvas::setBackground(const fmt::color col) noexcept
+	void canvas::setBackground(const colour col) noexcept
 	{
 		for(std::vector<cell>& row : buffer_) {
 			for(cell& elem : row) {
@@ -48,10 +48,10 @@ namespace winTerm
 	}
 
 	void canvas::addText(const std::string& str , unsigned int row , unsigned int column , 
-					  const fmt::color fg , const fmt::color bg , fmt::emphasis style)
+					  const colour fg , const colour bg , emphasis style)
 	{
 		if(row > height_ || column > width_) 
-			throw std::out_of_range(fmt::format("addText: index ({:d} , {:d}) out of range" , row , column));
+			throw std::out_of_range(std::format("addText: index ({:d} , {:d}) out of range" , row , column));
 		else {
 			for(unsigned int x = 0 ; x < str.size() ; x++) {
 				if(x + column >= width_) break;
@@ -60,7 +60,7 @@ namespace winTerm
 		}
 	}
 
-	void canvas::drawRect(const rect& rectangle , const fmt::color bg , const borderStyle bs , const bool erase) noexcept
+	void canvas::drawRect(const rect& rectangle , const colour bg , const borderStyle bs , const bool erase) noexcept
 	{
 		unsigned int offset = static_cast<unsigned int>(bs);
 
@@ -104,7 +104,7 @@ namespace winTerm
 				}
 			}
 		}
-    }
+	}
 
 	void canvas::setBorder(const borderStyle bs) noexcept
 	{
@@ -118,7 +118,7 @@ namespace winTerm
 		// horizontal borders
 		for(unsigned int i = 1 ; i < width_ - 1 ; i++) {
 			buffer_[0][i].character = borderChars[offset];
- 			buffer_[height_ - 1][i].character = borderChars[offset];
+			buffer_[height_ - 1][i].character = borderChars[offset];
 		}
 		
 		// vertical borders
@@ -126,41 +126,46 @@ namespace winTerm
 			buffer_[j][0].character = borderChars[offset+1];
 			buffer_[j][width_ - 1].character = borderChars[offset+1];
 		}
-    }
+	}
 
 
 	void canvas::renderStringGenerate(std::string& out) const noexcept
 	{
 		char multiByteChar[4] = {0};
 
-		fmt::color currFg = buffer_[0][0].fgColor;
-		fmt::color currBg = buffer_[0][0].bgColor;
-		fmt::emphasis currEmphasis = buffer_[0][0].style;
+		colour currFg = buffer_[0][0].fgColor;
+		colour currBg = buffer_[0][0].bgColor;
+		emphasis currEmphasis = buffer_[0][0].emph;
 
-		// initialise ansi string for render
-		out += std::string(fmt::detail::make_background_color<char>(currBg)) +
-										std::string(fmt::detail::make_foreground_color<char>(currFg)) +
-										std::string(fmt::detail::make_emphasis<char>(currEmphasis));
-
+		// initialise ansi string for render // TODO: add empphasis support
+		out += std::format("\x1b[48;2;{:d};{:d};{:d}m\x1b[38;2;{:d};{:d};{:d}m\x1b[{:c}m", 
+						(currBg & colour::red) >> 16, (currBg & colour::green) >> 8 , (currBg & colour::blue),
+						(currFg & colour::red) >> 16, (currFg & colour::green) >> 8 , (currFg & colour::blue),
+						attribute_codes[currEmphasis]
+					);
 
 		for(int j = 0 ; j < (int)buffer_.size() ; j++) {
 			for (int i = 0 ; i < (int)buffer_[j].size() ; i++) {
 
-				int bytes = wctomb(multiByteChar , buffer_[j][i].character);
+				int bytes = wctomb(multiByteChar , buffer_[j][i].character); // TODO optimise this 
 				
 				if(buffer_[j][i].fgColor != currFg) {
 					currFg = buffer_[j][i].fgColor;
-					out += std::string(fmt::detail::make_foreground_color<char>(currFg));
+					out += std::format("\x1b[38;2;{:d};{:d};{:d}m",
+						(currFg & colour::red) >> 16, (currFg & colour::green) >> 8 , (currFg & colour::blue)
+					);
 				}
 
 				if(buffer_[j][i].bgColor != currBg) {
 					currBg = buffer_[j][i].bgColor;
-					out += std::string(fmt::detail::make_background_color<char>(currBg));
+					out += std::format("\x1b[48;2;{:d};{:d};{:d}m",
+						(currBg & colour::red) >> 16, (currBg & colour::green) >> 8 , (currBg & colour::blue)
+					); 
 				}
 
-				if(buffer_[j][i].style != currEmphasis) {
-					currEmphasis = buffer_[j][i].style;
-					out += std::string(fmt::detail::make_emphasis<char>(currEmphasis));
+				if(buffer_[j][i].emph != currEmphasis) {
+					currEmphasis = buffer_[j][i].emph;
+					out += std::format("\x1b[{:c}m",attribute_codes[currEmphasis]);
 				}
 				
 				if(bytes > 0) { out.append(multiByteChar , bytes); }

@@ -11,6 +11,7 @@ class memAlloc final {
     static_assert(N > 1, "Specify a valid size (must be greater than one)");
 
 private:
+
     struct alignas(64) block_t {
         T obj_;
         block_t* next_;
@@ -18,9 +19,7 @@ private:
         block_t() : next_(nullptr) {}
     };
 
-    // Large buffer for allocation
     void* buffer_;
-    // Memory management
     block_t* freeList_;
     std::size_t freeCount_;
 
@@ -46,7 +45,7 @@ public:
     ~memAlloc() { std::free(buffer_); }
 
     [[nodiscard]] handle<T> allocate() {
-        if (__builtin_expect(freeCount_ == 0 , 0)) throw std::bad_alloc();
+        if (__builtin_expect(freeCount_ == 0 , 0)) return nullptr;
 
         block_t* block_p = freeList_;
         freeList_ = freeList_->next_;
@@ -58,7 +57,7 @@ public:
 
     template<typename ... Args>
     [[nodiscard]] handle<T> allocate(Args&& ... args) {
-        if (__builtin_expect(freeCount_ == 0 , 0)) throw std::bad_alloc();
+        if (__builtin_expect(freeCount_ == 0 , 0)) return nullptr;
 
         block_t* block_p = freeList_;
         freeList_ = freeList_->next_;
