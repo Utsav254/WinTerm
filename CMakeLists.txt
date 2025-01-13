@@ -8,10 +8,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Add configurations for Debug and Release
-set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type (Debug or Release)" FORCE)
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release)
-
 # Find all .cpp files directly in the src directory
 file(GLOB SOURCES_DIRECT "src/*.cpp")
 
@@ -48,4 +44,10 @@ endif()
 
 # Common compile options
 target_compile_options(exp PUBLIC -Wall -Wextra -pedantic)
+
+# Custom output name for compile_commands.json
+add_custom_command(
+    TARGET exp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/compile_commands.json ${CMAKE_BINARY_DIR}/../compile_commands.json
+)
 

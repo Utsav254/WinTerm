@@ -44,6 +44,7 @@ namespace winTermNameSpace {
 			left(left) , top(top) , right(right) , bottom(bottom)
 		{
 			if(right < left || bottom < top) {
+
 #ifdef _DEBUG
 				throw std::out_of_range
 				(
