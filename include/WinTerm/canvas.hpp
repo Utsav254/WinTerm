@@ -3,6 +3,7 @@
 #include <vector>
 #include <array>
 #include "WinTerm/styles.hpp"
+#include "WinTerm/rect.hpp"
 
 namespace winTermNameSpace {
 
@@ -31,30 +32,6 @@ namespace winTermNameSpace {
 			fgColor(fg) ,
 			bgColor(bg) ,
 			emph(emph) {}
-	};
-
-	struct rect
-	{
-		unsigned int left;
-		unsigned int top;
-		unsigned int right;
-		unsigned int bottom;
-
-		rect(unsigned int left , unsigned int top , unsigned int right , unsigned int bottom) :
-			left(left) , top(top) , right(right) , bottom(bottom)
-		{
-			if(right < left || bottom < top) {
-
-#ifdef _DEBUG
-				throw std::out_of_range
-				(
-					std::format("rectangle bottom/right less than top/left({:d}, {:d}, {:d}, {:d})", left, top, right, bottom)
-				);
-#endif
-				right = left;
-				bottom = top;
-			}
-		}
 	};
 
 	class canvas final {

@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 
 project(expl LANGUAGES CXX)
 
-find_package(fmt REQUIRED)
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -23,8 +21,6 @@ list(REMOVE_DUPLICATES SOURCES)
 add_executable(exp ${SOURCES})
 
 target_include_directories(exp PUBLIC ${CMAKE_SOURCE_DIR}/include)
-
-target_link_libraries(exp PRIVATE fmt::fmt)
 
 # Debug-specific settings
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
