@@ -25,15 +25,13 @@ void termProc(handle<winTerm::msg> msg) {
 				const unsigned int height = 35, width = 100;
 
 				handle<winTerm::canvas> cv = winTerm::beginPaint(width , height);
-				cv->setBackground(winTerm::colour::blue);
+				cv->setBackground(winTerm::colour::black);
 				cv->setBorder(winTerm::borderStyle::two);
 
 				cv->addText(" Window Tittle Here " , 0 , width / 2 - 21 / 2 , winTerm::colour::white,
-					winTerm::colour::red, winTerm::emphasis::bold);
+					winTerm::colour::black, winTerm::emphasis::bold);
 
-				cv->drawRect(winTerm::rect(2, 2, 97, 20), winTerm::colour::green, static_cast<winTerm::borderStyle>(0), false);
-
-				cv->addText(buffer, 3, 3, winTerm::colour::white, winTerm::colour::green, winTerm::emphasis::norm);
+				cv->addText(buffer, 3, 3, winTerm::colour::white, winTerm::colour::black, winTerm::emphasis::norm);
 
 				winTerm::endPaint(std::move(cv));
 			}
