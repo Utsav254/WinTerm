@@ -19,7 +19,7 @@ int winTerm::initialise()
 	rawTermios.c_cflag |= (CS8);
 	rawTermios.c_lflag &= ~(ECHO | ICANON | IEXTEN);
 	rawTermios.c_cc[VMIN] = 0;
-	rawTermios.c_cc[VTIME] = 1;
+	rawTermios.c_cc[VTIME] = 0;
 	tcsetattr(STDIN_FILENO , TCSAFLUSH , &rawTermios);
 
 	_oldLocale = std::setlocale(LC_ALL, "");

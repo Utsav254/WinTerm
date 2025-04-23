@@ -3,7 +3,7 @@
 void winTerm::postQuitMessage(int returnCode)
 {
 	_shouldQuit.store(true);
-	_renderQueue.emplace(0, 0, cell(), canvas::canvMsg::END);
+	_renderQueue.emplace(0, 0,0,0, cell(), canvas::canvMsg::END);
 	_messageQueue.emplace(message::QUIT , returnCode);
 }
 

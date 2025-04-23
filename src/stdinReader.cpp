@@ -21,7 +21,7 @@ void winTerm::stdinReader() noexcept
 // a better faster more maintable way 
 // flex bison parser??
 // throws for unhandled escape sequences
-void winTerm::readParseEscapeSequence()
+inline void winTerm::readParseEscapeSequence()
 {
 	char seqBuffer[queueSize] = {0};
 	ssize_t n = read(STDIN_FILENO, seqBuffer, sizeof(seqBuffer));

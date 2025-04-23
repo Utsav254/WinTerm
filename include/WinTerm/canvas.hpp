@@ -46,12 +46,14 @@ namespace winTermNameSpace {
 
 	public:
 		canvas(
-			const unsigned int width, const unsigned int height, 
+			const unsigned int width, const unsigned int height,
+			const unsigned int x = 0, const unsigned int y = 0,
 			const cell& cl = {L' ', colour::white, colour::black, emphasis::norm},
 			const canvMsg msg = canvMsg::OPTIMISE):
 
 			message_(msg),
 			width_(width) , height_(height),
+			x_(x), y_(y),
 			buffer_(height , std::vector<cell>(width , cl)),
 			renderStrGenResetSeq(std::format("\x1b[1B\x1b[{:d}D", width_))
 		{
@@ -98,7 +100,7 @@ namespace winTermNameSpace {
 		void getBuffer(std::vector<std::vector<cell>>& buffer) const { buffer = buffer_; }
 		void updateRenderScheme(canvMsg in) noexcept { message_ = in; }
 
-
+		void setPosition(const unsigned int x, const unsigned int y);
 		
 		canvMsg message_;
 		//generate render string based on render schema
@@ -111,6 +113,7 @@ namespace winTermNameSpace {
 
 
 		unsigned int width_ , height_;
+		unsigned int x_, y_;
 		std::vector<std::vector<cell>> buffer_;
 		colour background_;
 

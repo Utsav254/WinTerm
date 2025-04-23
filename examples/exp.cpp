@@ -1,61 +1,75 @@
 #include "WinTerm/winTerm.hpp"
 #include <string>
+#include <unistd.h>
+
+using wt = winTerm;
 
 std::string buffer;
+unsigned int x = 0;
+unsigned int y = 0;
 
-void termProc(handle<winTerm::msg> msg) {
+void termProc(handle<wt::msg> msg) {
 	switch (msg->m) {
-		case winTerm::message::KEYBOARD:
+		case wt::message::KEYBOARD:
 			{
-				winTerm::keyboard kbd = std::get<winTerm::keyboard>(msg->param);
+				wt::keyboard kbd = std::get<wt::keyboard>(msg->param);
 				if(kbd >= 32 && kbd < 127) {
 					if(buffer.size() % 94 == 0 && buffer.size() != 0){
 						buffer += '\n';
 					}
 					buffer += char(kbd);
-					winTerm::postPaintMessage();
+					wt::postPaintMessage();
 				}
-				else if(kbd == winTerm::keyboard::CTRL_Q) {
-					winTerm::postQuitMessage(0);
+				else if(kbd == wt::keyboard::ARROW_RIGHT) {
+					x++;
+					wt::postPaintMessage();
+				}
+				else if(kbd == wt::keyboard::ARROW_DOWN) {
+					y++;
+					wt::postPaintMessage();
+				}
+				else if(kbd == wt::keyboard::CTRL_Q) {
+					wt::postQuitMessage(0);
 				}
 			}
 			break;
-		case winTerm::message::PAINT:
+		case wt::message::PAINT:
 			{
-				const unsigned int height = 35, width = 100;
+				constexpr unsigned int height = 35, width = 100;
 
-				handle<winTerm::canvas> cv = winTerm::beginPaint(width , height);
-				cv->setBackground(winTerm::colour::black);
-				cv->setBorder(winTerm::borderStyle::two);
+				handle<wt::canvas> cv = wt::beginPaint(width , height);
+				cv->setPosition(x, y);
+				cv->setBackground(wt::colour::black);
+				cv->setBorder(wt::borderStyle::two);
 
-				cv->addText(" Window Tittle Here " , 0 , width / 2 - 21 / 2 , winTerm::colour::white,
-					winTerm::colour::black, winTerm::emphasis::bold);
+				cv->addText(" Window Tittle Here " , 0 , width / 2 - 21 / 2 , wt::colour::white,
+					wt::colour::black, wt::emphasis::bold);
 
-				cv->addText(buffer, 3, 3, winTerm::colour::white, winTerm::colour::black, winTerm::emphasis::norm);
+				cv->addText(buffer, 3, 3, wt::colour::white, wt::colour::black, wt::emphasis::norm);
 
-				winTerm::endPaint(std::move(cv));
+				wt::endPaint(std::move(cv));
 			}
 			break;
-		case winTerm::message::RESIZE:
-		case winTerm::message::NONE:
-		case winTerm::message::QUIT:
+		case wt::message::RESIZE:
+		case wt::message::NONE:
+		case wt::message::QUIT:
 			break;
     }
 }
 
 int main()
 {
-	winTerm::initialise();
+	wt::initialise();
 
-	handle<winTerm::msg> msg;
+	handle<wt::msg> msg;
 	int getEventResult;
 
-	while ((getEventResult = winTerm::getMessage(msg)))
+	while ((getEventResult = wt::getMessage(msg)))
 	{
 		if(msg) termProc(std::move(msg)); // this will be replaces by a dispatcher which will check for nullptr
 	}
 
-	winTerm::destroy();
+	wt::destroy();
 
 	if(getEventResult == 0) return static_cast<int>(std::get<long>(msg->param));
 	else return EXIT_FAILURE;

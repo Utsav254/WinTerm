@@ -15,6 +15,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_link_options(winTerm PUBLIC -fsanitize=address)
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_definitions(winTerm PUBLIC _NDEBUG)
-    target_compile_options(winTerm PUBLIC -O3 -march=native -flto)
+    target_compile_options(winTerm PUBLIC -O3 -g)
 endif()
 

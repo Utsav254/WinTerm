@@ -17,9 +17,9 @@ void winTerm::renderCanvas() noexcept
 	
 	while((canv = _renderQueue.pop())->message_ != canvas::canvMsg::END) {
 
-		std::string ansi = "\x1b[?25l\x1b[H";
+		std::string ansi = "\x1b[?25l";
 		canv->renderStringGenerate(ansi);
-		ansi += "\x1b[?25h\x1b[0m";
+		ansi += "\x1b[?25h";
 		
 		write(STDOUT_FILENO, ansi.c_str(), ansi.size());
 	}
