@@ -1,26 +1,17 @@
-#include "WinTerm/winTerm.hpp"
+#include "winTerm.hpp"
 
-handle<winTerm::canvas> winTerm::beginPaint(int rows , int columns) noexcept
+winTerm::canvas* winTerm::beginPaint(int rows , int columns) noexcept
 {
-	handle<canvas> h = _renderQueue.handleGet(rows , columns);
-	return h;
+	static canvas canv(rows, columns);
+	canv.resize(rows, columns);
+	return &canv;
 }
 
-void winTerm::endPaint(handle<canvas> canv) noexcept
+void winTerm::endPaint(canvas* canv) noexcept
 {
-	_renderQueue.push(std::move(canv));
-}
-
-void winTerm::renderCanvas() noexcept
-{
-	handle<canvas> canv;
+	std::string ansi = "\x1b[?25l";
+	canv->renderStringGenerate(ansi);
+	ansi += "\x1b[?25h";
 	
-	while((canv = _renderQueue.pop())->message_ != canvas::canvMsg::END) {
-
-		std::string ansi = "\x1b[?25l";
-		canv->renderStringGenerate(ansi);
-		ansi += "\x1b[?25h";
-		
-		write(STDOUT_FILENO, ansi.c_str(), ansi.size());
-	}
+	write(STDOUT_FILENO, ansi.c_str(), ansi.size());
 }

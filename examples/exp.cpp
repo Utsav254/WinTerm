@@ -1,18 +1,18 @@
-#include "WinTerm/winTerm.hpp"
+#include "winTerm.hpp"
 #include <string>
 #include <unistd.h>
 
-using wt = winTerm;
+namespace wt = winTerm;
 
 std::string buffer;
 unsigned int x = 0;
 unsigned int y = 0;
 
-void termProc(handle<wt::msg> msg) {
+void termProc(wt::msg *msg) {
 	switch (msg->m) {
 		case wt::message::KEYBOARD:
 			{
-				wt::keyboard kbd = std::get<wt::keyboard>(msg->param);
+				wt::keyboard kbd = msg->param.kbd;
 				if(kbd >= 32 && kbd < 127) {
 					if(buffer.size() % 94 == 0 && buffer.size() != 0){
 						buffer += '\n';
@@ -37,7 +37,7 @@ void termProc(handle<wt::msg> msg) {
 			{
 				constexpr unsigned int height = 35, width = 100;
 
-				handle<wt::canvas> cv = wt::beginPaint(width , height);
+				wt::canvas *cv = wt::beginPaint(width , height);
 				cv->setPosition(x, y);
 				cv->setBackground(wt::colour::black);
 				cv->setBorder(wt::borderStyle::two);
@@ -47,12 +47,15 @@ void termProc(handle<wt::msg> msg) {
 
 				cv->addText(buffer, 3, 3, wt::colour::white, wt::colour::black, wt::emphasis::norm);
 
-				wt::endPaint(std::move(cv));
+				wt::endPaint(cv);
 			}
 			break;
 		case wt::message::RESIZE:
 		case wt::message::NONE:
 		case wt::message::QUIT:
+		case wt::message::CREATE:
+		case wt::message::DESTROY:
+		default:
 			break;
     }
 }
@@ -61,17 +64,17 @@ int main()
 {
 	wt::initialise();
 
-	handle<wt::msg> msg;
+	wt::msg msg;
 	int getEventResult;
 
-	while ((getEventResult = wt::getMessage(msg)))
+	while ((getEventResult = wt::getMessage(&msg)) > 0)
 	{
-		if(msg) termProc(std::move(msg)); // this will be replaces by a dispatcher which will check for nullptr
+		termProc(&msg);
 	}
-
+	
 	wt::destroy();
 
-	if(getEventResult == 0) return static_cast<int>(std::get<long>(msg->param));
+	if(getEventResult == 0) return static_cast<int>(msg.param.l);
 	else return EXIT_FAILURE;
 }
 

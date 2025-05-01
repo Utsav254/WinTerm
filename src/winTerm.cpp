@@ -1,6 +1,14 @@
-#include "WinTerm/winTerm.hpp"
+#include "winTerm.hpp"
 #include <termios.h>
 #include <unistd.h>
+
+namespace winTerm {
+	int _columns , _rows; // size of full terminal window
+
+	static struct termios _origTermios;
+	static char *_oldLocale;
+
+}
 
 int winTerm::initialise()
 {
@@ -18,8 +26,6 @@ int winTerm::initialise()
 	rawTermios.c_oflag &= ~(OPOST);
 	rawTermios.c_cflag |= (CS8);
 	rawTermios.c_lflag &= ~(ECHO | ICANON | IEXTEN);
-	rawTermios.c_cc[VMIN] = 0;
-	rawTermios.c_cc[VTIME] = 0;
 	tcsetattr(STDIN_FILENO , TCSAFLUSH , &rawTermios);
 
 	_oldLocale = std::setlocale(LC_ALL, "");
@@ -27,18 +33,12 @@ int winTerm::initialise()
 
 	constexpr char moveCursorHome[4] = "\x1b[H";
 	write(STDOUT_FILENO , moveCursorHome , sizeof(moveCursorHome));
-		
-	_renderThread = std::thread(&winTerm::renderCanvas);
-	_stdinReaderThread = std::thread(&winTerm::stdinReader);
 
 	return 0;
 }
 
 int winTerm::destroy()
 {
-	if(_stdinReaderThread .joinable()) _stdinReaderThread.join();
-	if(_renderThread .joinable()) _renderThread.join();
-
 	std::setlocale(LC_ALL, _oldLocale);
 	
 	// restore original terminal settings
