@@ -353,7 +353,7 @@ namespace winTerm {
 					param.l = static_cast<long>(0);
 					break;
 				default:
-					param.l = static_cast<long>(0);
+					param.l = static_cast<long>(value);
 					break;
 			}
 		}

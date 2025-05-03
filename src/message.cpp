@@ -1,6 +1,6 @@
 #include "winTerm.hpp"
 
-static winTerm::queue<winTerm::msg, 4> _messageQueue;
+winTerm::queue<winTerm::msg, 4> _messageQueue;
 
 void winTerm::postQuitMessage(int returnCode)
 {

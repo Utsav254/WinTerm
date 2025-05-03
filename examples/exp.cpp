@@ -1,12 +1,13 @@
 #include "winTerm.hpp"
+#include <iostream>
 #include <string>
 #include <unistd.h>
 
 namespace wt = winTerm;
 
 std::string buffer;
-unsigned int x = 0;
-unsigned int y = 0;
+unsigned int x = 70;
+unsigned int y = 35;
 
 void termProc(wt::msg *msg) {
 	switch (msg->m) {
@@ -20,14 +21,6 @@ void termProc(wt::msg *msg) {
 					buffer += char(kbd);
 					wt::postPaintMessage();
 				}
-				else if(kbd == wt::keyboard::ARROW_RIGHT) {
-					x++;
-					wt::postPaintMessage();
-				}
-				else if(kbd == wt::keyboard::ARROW_DOWN) {
-					y++;
-					wt::postPaintMessage();
-				}
 				else if(kbd == wt::keyboard::CTRL_Q) {
 					wt::postQuitMessage(0);
 				}
@@ -35,14 +28,14 @@ void termProc(wt::msg *msg) {
 			break;
 		case wt::message::PAINT:
 			{
-				constexpr unsigned int height = 35, width = 100;
-
-				wt::canvas *cv = wt::beginPaint(width , height);
-				cv->setPosition(x, y);
+				wt::canvas *cv = wt::beginPaint(x , y);
+				// cv->setPosition(x, y);
 				cv->setBackground(wt::colour::black);
 				cv->setBorder(wt::borderStyle::two);
 
-				cv->addText(" Window Tittle Here " , 0 , width / 2 - 21 / 2 , wt::colour::white,
+				std::string title = std::format(" Window Title Here {},{}", x, y);
+
+				cv->addText(title , 0 , x / 2 - 21 / 2 , wt::colour::white,
 					wt::colour::black, wt::emphasis::bold);
 
 				cv->addText(buffer, 3, 3, wt::colour::white, wt::colour::black, wt::emphasis::norm);
@@ -51,6 +44,11 @@ void termProc(wt::msg *msg) {
 			}
 			break;
 		case wt::message::RESIZE:
+			std::cout << "hello world resize" << std::endl;
+			x = msg->param.l >> 16;
+			y = msg->param.l & 0xffff;
+			winTerm::postPaintMessage();
+			break;
 		case wt::message::NONE:
 		case wt::message::QUIT:
 		case wt::message::CREATE:
