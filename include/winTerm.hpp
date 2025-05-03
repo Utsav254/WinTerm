@@ -1,5 +1,8 @@
 #pragma once
+#include <cstdint>
+#include <cstdlib>
 #include <format>
+#include <sys/types.h>
 #include <utility>
 #include <vector>
 #include <stdexcept>
@@ -11,8 +14,7 @@
 
 namespace winTerm {
 
-	enum message
-	{
+	enum message {
 		// message recieved when window is created
 		// param : TBD
 		CREATE,
@@ -28,7 +30,7 @@ namespace winTerm {
 		// message recieved for keyboard event
 		// param : enum winTerm::keyboard
 		KEYBOARD,
-	
+
 		// message recieved for window resize event
 		// param : long {MSBs: new x dimension} , { LSBs : new y dimension}
 		RESIZE,
@@ -41,8 +43,7 @@ namespace winTerm {
 	};
 
 
-	enum keyboard
-	{
+	enum keyboard {
 		CTRL_A = 1, CTLR_B, CTRL_C , CTRL_D , CTRL_E , CTRL_F ,
 		CTRL_G , CTRL_H , CTRL_I , CTRL_J , CTRL_K , CTRL_L ,
 		CTRL_M , CTRL_N , CTRL_O , CTRL_P , CTRL_Q , CTRL_R ,
@@ -54,7 +55,6 @@ namespace winTerm {
 		// alpha numeric keys ranging 32 - 127 dont need an enumerator
 		// use ASCII values
 
-		// other keys kept well out of range of ascii
 		ARROW_LEFT = 1000,
 		ARROW_RIGHT,
 		ARROW_UP,
@@ -67,12 +67,9 @@ namespace winTerm {
 
 		FN_1 , FN_2 , FN_3 , FN_4 , FN_5 , FN_6 ,
 		FN_7 , FN_8 , FN_9 , FN_10 , FN_11 , FN_12 ,
-
-		// TODO: alt keys...
 	};
 
-	enum colour
-	{
+	enum colour {
 		maroon = 0x800000,
 		dark_red = 0x8B0000,
 		brown = 0xA52A2A,
@@ -242,8 +239,7 @@ namespace winTerm {
 		'8'     // Hidden
 	};
 
-	struct rect
-	{
+	struct rect {
 		unsigned int left;
 		unsigned int top;
 		unsigned int right;
@@ -254,8 +250,7 @@ namespace winTerm {
         rect& operator|=(const rect& other);
 	};
 
-	struct cell
-	{
+	struct cell {
 		wchar_t character;
 		colour fgColor;
 		colour bgColor;
@@ -266,14 +261,13 @@ namespace winTerm {
 		cell(wchar_t c , const enum colour fg , const enum colour bg , emphasis emph);
 	};
 
-	enum class canvMsg
-	{
+	enum class canvMsg {
 		OPTIMISE,
 		FORCE_RERENDER,
 		END,
 	};
 
-	class canvas final {
+	struct canvas {
 	public:
 		canvas(
 			const unsigned int width, const unsigned int height,
@@ -296,54 +290,33 @@ namespace winTerm {
 		canvas(const canvas& ) = delete;
 		canvas& operator=(const canvas&) = delete;
 
-		// resize the buffer
-		// this will ruin the data held in the vector
 		void resize(const int newWidth , const int newHeight) noexcept;
 		
-		// fetch cell reference at row or column
-		// throw std::out_of_range if not in buffer
 		cell& at(const unsigned int row , const unsigned int column);
 
-		// clear the buffer completely with default cell
 		void clear() noexcept;
-		// clear the buffer and put a specified cell in place
 		void clear(const cell& cl) noexcept;
 		
-		// setBackGround of entire buffer
-		// will not modify character content of buffer
 		void setBackground(const colour col) noexcept;
 		inline colour getBackground() const noexcept { return background_; }
 
-		// add text to a window
-		// throw std::out_of_range if given string is completely out of range
-		// no automatic wrapping will simply cut string off at the end of the buffer
 		void addText(const std::string& str , unsigned int row , unsigned int column , 
 			   const colour fg , const colour bg , emphasis emph);
 
-		// draw a rectangle at given location (window coordinates)
-		// throw std::out_of_range if given rect is completely out of range
-		// if escaping buffer, will cutoff at border
-		// set erase true if the rectangle should erase existing characters in specified area
 		void drawRect(const rect& rectangle , const colour bg , const borderStyle bs , const bool erase) noexcept;
 		
-		// set the border of the window buffer with given border style
 		void setBorder(const borderStyle bs) noexcept;
 
-
-		//
 		void getBuffer(std::vector<std::vector<cell>>& buffer) const { buffer = buffer_; }
 		void updateRenderScheme(canvMsg in) noexcept { message_ = in; }
 
 		void setPosition(const unsigned int x, const unsigned int y);
 		
-		//generate render string based on render schema
 		void renderStringGenerate(std::string& out) const noexcept;
 
 		inline canvMsg getMessage() const noexcept {return message_;}
 
 	private:
-
-
 		unsigned int width_ , height_;
 		unsigned int x_, y_;
 		std::vector<std::vector<cell>> buffer_;
@@ -354,8 +327,7 @@ namespace winTerm {
 		canvMsg message_;
 	};
 	
-	struct msg
-	{
+	struct msg {
 		message m;
 
 		union param {
@@ -389,8 +361,7 @@ namespace winTerm {
 
 	#define QUEUE_INCREMENT(idx) (N_is_pow2 ? ((idx + 1) & (N - 1)) : ((idx + 1) % N))
 	template<typename T, std::size_t N>
-	class queue
-	{
+	class queue {
 	private:
 		static_assert(N > 0, "Please provide a valid queue size");
 		static constexpr bool N_is_pow2 = (N != 0) && ((N & (N - 1)) == 0);
@@ -468,6 +439,209 @@ namespace winTerm {
 	#undef QUEUE_INCREMENT
 
 
+	template<typename T>
+	struct handle {
+	private:
+		uint32_t value;
+
+		static constexpr uint8_t INDEX_BITS = 24u;
+		static constexpr uint32_t INDEX_MASK = (1u << INDEX_BITS) - 1;
+		static constexpr uint32_t VERSION_MASK = ~INDEX_MASK;
+		static constexpr uint32_t VERSION_SHIFT = INDEX_BITS;
+
+		static constexpr uint32_t makeHandle(uint32_t idx, uint32_t version) noexcept {
+			return (version << VERSION_SHIFT) | (idx & INDEX_MASK);
+		}
+	public:
+		constexpr handle() noexcept : value(INDEX_MASK) {}
+		constexpr handle(std::nullptr_t) noexcept : value(INDEX_MASK) {}
+
+		inline constexpr uint32_t index() const noexcept {
+			return value & INDEX_MASK;
+		}
+
+		inline constexpr uint32_t version() const noexcept {
+			return (value & VERSION_MASK) >> (VERSION_SHIFT);
+		}
+
+		inline constexpr bool valid() const noexcept {
+			return index() != INDEX_MASK;
+		}
+
+		inline bool operator==(const handle& other) const noexcept {
+			return value == other.value;
+		}
+
+		inline bool operator!=(const handle& other ) const noexcept {
+			return value != other.value;
+		}
+
+		constexpr bool operator==(std::nullptr_t) const noexcept {
+			return !valid();
+		}
+
+		constexpr bool operator!=(std::nullptr_t) const noexcept {
+			return valid();
+		}
+
+	private:
+		template<typename U, std::size_t N>
+		friend struct registry;
+
+		constexpr explicit handle(uint32_t idx, uint32_t version) noexcept : value(makeHandle(idx, version)) {}
+	};
+
+	template<typename T, std::size_t N>
+	struct registry {
+		static_assert(N > 0, "Capacity of registry must be valid (greater than zero)");
+		static_assert(N < (1u << 24), "Capacity of registry must be valid (less than 2 ^ 24)");
+	private:
+		static constexpr uint32_t NULL_INDEX = static_cast<uint32_t>(-1);
+
+		struct slot_info {
+			uint32_t version;
+			u_int32_t directIndex;
+
+			slot_info() noexcept : version(0), directIndex(NULL_INDEX) {}
+		};
+
+		std::array<T,N> objects;
+		std::array<slot_info,N> slots;
+		std::array<uint32_t,N> freeSlots;
+
+		uint32_t objectCount = 0;
+		uint32_t freeSlotCount = N;
+	public:
+		using iterator = T*;
+		using const_iterator = const T*;
+
+		registry() {
+			for(uint32_t i = 0 ; i < N ; i++) { 
+				slots[i].version = 0;
+				slots[i].directIndex = NULL_INDEX;
+				freeSlots[N - i - 1] = i;	
+			}
+		}
+
+		template<typename ... Args>
+		handle<T> allocate(Args&& ... args) noexcept(std::is_nothrow_constructible_v<T, Args...>) {
+			if(freeSlots == 0)
+				throw std::bad_alloc();
+
+			uint32_t slotIdx = freeSlots[--freeSlotCount];
+
+			if constexpr (std::is_nothrow_constructible_v<T, Args...>) {
+				new (&objects[objectCount]) T(std::forward<Args>(args)...);
+			}
+			else {
+				try{
+					new (&objects[objectCount]) T(std::forward<Args>(args)...);
+				}
+				catch(...) {
+					freeSlots[freeSlotCount++] = slotIdx;
+					throw;
+				}
+
+			}
+
+			slots[slotIdx].directIndex = objectCount++;
+			return handleType(slotIdx, slots[slotIdx].version);
+		}
+
+		void deallocate(const handle<T>& h) noexcept {
+			uint32_t slotIdx = h.index();
+			uint32_t objIdx = slots[slotIdx].directIndex();
+
+			if(objIdx < objectCount - 1) {
+				objects[objIdx] = std::move(objects[objectCount-1]);
+				for(uint32_t i = 0 ; i < N ; i++) {
+					if(slots[i].directIndex == objectCount-1) {
+						slots[i].directIndex = objIdx;
+						break;
+					}
+				}
+			}
+
+			if constexpr (!std::is_trivially_destructible_v<T>) {
+				objects[--objectCount].~T();
+			} else {
+				--objectCount;
+			}
+
+			slots[slotIdx].directIndex = NULL_INDEX;
+			slots[slotIdx].version++;
+			freeSlots[freeSlotCount++] = slotIdx;
+		}
+
+		inline T& get(const handle<T>& h) noexcept {
+			return objects[slots[h.index()].directIndex];
+		}
+
+		inline const T& get(const handle<T>& h) const noexcept {
+			return objects[slots[h.index()].directIndex];
+		}
+
+		inline bool valid(const handle<T>& h) const {
+			const uint32_t idx = h.index();
+			return h.valid() && 
+				   idx < slots.size() && 
+				   slots[idx].direct_index != NULL_INDEX && 
+				   slots[idx].version == h.version();
+		}
+		
+		inline T& tryGet(const handle<T>& h) {
+			if(valid(h)) return objects[slots[h.index()].directIndex];
+			else throw std::out_of_range("tryGet on invalid handle");
+		}
+
+		inline const T& tryGet(const handle<T>& h) const {
+			if(valid(h)) return objects[slots[h.index()].directIndex];
+			else throw std::out_of_range("tryGet on invalid handle");
+		}
+
+		inline std::size_t size() const noexcept {return objectCount;}
+
+		inline constexpr std::size_t capacity() const noexcept {return N;}
+
+		inline bool empty() const noexcept {return objectCount == 0;}
+
+		inline bool full() const noexcept {return objectCount == N;}
+
+		void clear() {
+			if constexpr(!std::is_trivially_destructible_v<T>) {
+				for(uint32_t i = 0 ; i < objectCount ; i++) {
+					objects[i].~T();
+				}
+			}
+
+			for(uint32_t i = 0 ; i < N ; i++) {
+				slots[i].directIndex = NULL_INDEX;
+				slots[i].version++;
+				freeSlots[N - i - 1] = i;
+			}
+
+			objectCount = 0;
+			freeSlotCount = N;
+		}
+
+		inline iterator begin() noexcept {
+			return &objects[0];
+		}
+
+		inline iterator end() noexcept {
+			return &objects[0] + objectCount;
+		}
+
+		inline const_iterator begin() const noexcept {
+			return &objects[0];
+		}
+
+		inline const_iterator end() const noexcept {
+			return &objects[0] + objectCount;
+		}
+	};
+
+	
 	//////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////
 
