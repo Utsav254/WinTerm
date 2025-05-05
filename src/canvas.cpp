@@ -72,6 +72,11 @@ rect& rect::operator|=(const rect& other)
 	return *this;
 }
 
+bool rect::operator&&(const rect& other) const noexcept {
+	return !(left >= other.right || right <= other.left || 
+			 top >= other.bottom || bottom <= other.top);
+}
+
 void canvas::resize(const int newWidth , const int newHeight) noexcept
 {
 	buffer_.resize(newHeight , std::vector<cell>(newWidth , cell()));	

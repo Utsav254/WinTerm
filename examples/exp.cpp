@@ -1,5 +1,6 @@
 #include "winTerm.hpp"
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <unistd.h>
 
@@ -9,7 +10,7 @@ std::string buffer;
 unsigned int x = 70;
 unsigned int y = 35;
 
-void termProc(wt::msg *msg) {
+int termProc(wt::msg *msg) {
 	switch (msg->m) {
 		case wt::message::KEYBOARD:
 			{
@@ -56,11 +57,18 @@ void termProc(wt::msg *msg) {
 		default:
 			break;
     }
+	return 0;
 }
 
 int main()
 {
 	wt::initialise();
+
+	wt::handle<wt::window> hWnd = wt::createWindow(0, 0, 70, 35,
+			L"Hell world Window", wt::wndStyle::STANDARD, termProc, nullptr, nullptr);
+
+	if(hWnd == nullptr) throw std::runtime_error("got nullptr hWnd");
+	else std::cout << "got nice window handle" << std::endl;
 
 	wt::msg msg;
 	int getEventResult;
@@ -69,6 +77,8 @@ int main()
 	{
 		termProc(&msg);
 	}
+
+	wt::destroyWindow(hWnd);
 	
 	wt::destroy();
 

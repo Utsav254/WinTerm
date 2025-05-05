@@ -2,12 +2,12 @@
 
 winTerm::queue<winTerm::msg, 4> _messageQueue;
 
-void winTerm::postQuitMessage(int returnCode)
+void winTerm::postQuitMessage(int returnCode) noexcept
 {
 	_messageQueue.emplace(message::QUIT , returnCode);
 }
 
-void winTerm::postPaintMessage()
+void winTerm::postPaintMessage() noexcept
 {
 	_messageQueue.emplace(message::PAINT , 0);
 }
@@ -107,8 +107,6 @@ static inline void readParseAnsiStdIn(winTerm::msg *m) noexcept
 	}
 }
 
-
-
 int winTerm::getMessage(msg* m) noexcept
 {
 	if(_messageQueue.empty()) {
@@ -121,4 +119,9 @@ int winTerm::getMessage(msg* m) noexcept
 
 	if(m->m == message::QUIT) return 0;
 	else return 1;
+}
+
+void winTerm::postMessage(const msg *m) noexcept
+{
+	_messageQueue.push(*m);
 }

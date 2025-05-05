@@ -244,10 +244,12 @@ namespace winTerm {
 		unsigned int top;
 		unsigned int right;
 		unsigned int bottom;
-
+		
+		rect() = default;
 		rect(unsigned int left , unsigned int top , unsigned int right , unsigned int bottom);
 		rect& operator &=(const rect& other);
         rect& operator|=(const rect& other);
+		bool operator&&(const rect& other) const noexcept;
 	};
 
 	struct cell {
@@ -525,7 +527,7 @@ namespace winTerm {
 
 		template<typename ... Args>
 		handle<T> allocate(Args&& ... args) noexcept(std::is_nothrow_constructible_v<T, Args...>) {
-			if(freeSlots == 0)
+			if(freeSlotCount == 0)
 				throw std::bad_alloc();
 
 			uint32_t slotIdx = freeSlots[--freeSlotCount];
@@ -545,12 +547,12 @@ namespace winTerm {
 			}
 
 			slots[slotIdx].directIndex = objectCount++;
-			return handleType(slotIdx, slots[slotIdx].version);
+			return handle<T>(slotIdx, slots[slotIdx].version);
 		}
 
 		void deallocate(const handle<T>& h) noexcept {
 			uint32_t slotIdx = h.index();
-			uint32_t objIdx = slots[slotIdx].directIndex();
+			uint32_t objIdx = slots[slotIdx].directIndex;
 
 			if(objIdx < objectCount - 1) {
 				objects[objIdx] = std::move(objects[objectCount-1]);
@@ -657,17 +659,25 @@ namespace winTerm {
 	// use to bind message to quitting program
 	// set the return Code if required
 	// if unable to post, will force push by popping extra event and pushing
-	void postQuitMessage(int returnCode);
+	void postQuitMessage(int returnCode) noexcept;
 
 	// use to bind message to a painting operation
 	// return true on success and false on failure
-	void postPaintMessage();
+	void postPaintMessage() noexcept;
 	
 	// use to get events from event queue
 	// return value is 0 if QUIT message
 	// positive if no error
 	// negative if error
 	int getMessage(msg *m) noexcept;
+
+	// post a message to the message queue
+	// silent on failure (unlikely to fail)
+	void postMessage(const msg *m) noexcept;
+
+	// send message and get message response (int)
+	// sent to relevant message handling function
+	int sendMessage(const msg* m) noexcept;
 
 	// begin painting by aquiring a canvas
 	// will return null if canvas could not be aquired
@@ -676,4 +686,48 @@ namespace winTerm {
 	// finish painting by releasing the canvas with render data
 	// this will notify the render thread and push the task onto the queue
 	void endPaint(canvas* canv) noexcept;
+
+	enum class wndStyle {
+		STANDARD,
+		POP_UP,
+	};
+
+	using wndProcFunc_t = int(*)(msg *m);
+
+	struct window {
+	
+		window() = default;
+		window(const unsigned int x, const unsigned int y,
+				const unsigned int columns, const unsigned int rows,
+				const wchar_t* windowTitle, wndStyle style,
+				wndProcFunc_t wndProc,
+				const handle<window> parentWindow,
+				void *userData):
+			x(x), y(y), columns(columns), rows(rows),
+			windowTitle(windowTitle), style(style),
+			wndProc(wndProc),
+			parentWindow(parentWindow),
+			userData(userData) {}
+
+		~window() = default;
+
+		unsigned int x, y;
+		unsigned int columns, rows;
+		const wchar_t * windowTitle;
+		wndStyle style;
+		wndProcFunc_t wndProc;
+		handle<window> parentWindow;
+		void *userData;
+
+		handle<rect> mainRect;
+	};
+
+	handle<window> createWindow(const unsigned int x, const unsigned int y,
+								const unsigned int columns, const unsigned int rows,
+								const wchar_t* windowTitle, wndStyle style,
+								wndProcFunc_t wndProc,
+								const handle<window> parentWindow,
+								void *userData) noexcept;
+
+	void destroyWindow(handle<window> wnd) noexcept;
 }
