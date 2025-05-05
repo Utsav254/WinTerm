@@ -1,6 +1,7 @@
 #include "winTerm.hpp"
+#include "queue.hpp"
 
-winTerm::queue<winTerm::msg, 4> _messageQueue;
+winTerm::queue<winTerm::msg, 8> _messageQueue;
 
 void winTerm::postQuitMessage(int returnCode) noexcept
 {
@@ -124,4 +125,10 @@ int winTerm::getMessage(msg* m) noexcept
 void winTerm::postMessage(const msg *m) noexcept
 {
 	_messageQueue.push(*m);
+}
+
+int winTerm::dispatchMessage(msg *m) noexcept
+{
+	(void)m;
+	return 0;
 }

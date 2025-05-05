@@ -1,13 +1,10 @@
 #include "winTerm.hpp"
+#include "registry.hpp"
 
 using namespace winTerm;
 
-static constexpr std::size_t WINDOW_COUNT_MAX = 64;
-static constexpr std::size_t RECT_COUNT_MAX = WINDOW_COUNT_MAX * 2;
-
-
-static registry<winTerm::window, WINDOW_COUNT_MAX> _windows;
-static registry<rect, RECT_COUNT_MAX> _rects;
+winTerm::registry<winTerm::window, WINDOW_COUNT_MAX> _windows;
+winTerm::registry<winTerm::rect, RECT_COUNT_MAX> _rects;
 
 handle<winTerm::window> winTerm::createWindow(const unsigned int x, const unsigned int y,
 								const unsigned int columns, const unsigned int rows,
