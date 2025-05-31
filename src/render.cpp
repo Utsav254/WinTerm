@@ -7,10 +7,15 @@ winTerm::canvas* winTerm::beginPaint(int rows , int columns) noexcept
 	return &canv;
 }
 
+static std::string ansi(512, ' ');
+
 void winTerm::endPaint(canvas* canv) noexcept
 {
-	std::string ansi = "\x1b[?25l";
+	ansi.clear();
+	ansi += "\x1b[?25l";
+
 	canv->renderStringGenerate(ansi);
+
 	ansi += "\x1b[?25h";
 	
 	write(STDOUT_FILENO, ansi.c_str(), ansi.size());

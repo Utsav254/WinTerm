@@ -171,34 +171,34 @@ void canvas::renderStringGenerate(std::string& out) const noexcept
 	emphasis currEmphasis = buffer_[0][0].emph;
 
 	// initialise ansi string for render
-	out += std::format("\x1b[{:d};{:d}H\x1b[48;2;{:d};{:d};{:d}m\x1b[38;2;{:d};{:d};{:d}m\x1b[{:c}m",
+	out += std::move(std::format("\x1b[{:d};{:d}H\x1b[48;2;{:d};{:d};{:d}m\x1b[38;2;{:d};{:d};{:d}m\x1b[{:c}m",
 					(y_), (x_),
 					(currBg & colour::red) >> 16, (currBg & colour::green) >> 8 , (currBg & colour::blue),
 					(currFg & colour::red) >> 16, (currFg & colour::green) >> 8 , (currFg & colour::blue),
 					attribute_codes[currEmphasis]
-				);
+				));
 	for(int j = 0 ; j < (int)buffer_.size() ; j++) {
 		for (int i = 0 ; i < (int)buffer_[j].size() ; i++) {
 
-			int bytes = wctomb(multiByteChar , buffer_[j][i].character);
+			const int bytes = wctomb(multiByteChar , buffer_[j][i].character);
 			
 			if(buffer_[j][i].fgColor != currFg) {
 				currFg = buffer_[j][i].fgColor;
-				out += std::format("\x1b[38;2;{:d};{:d};{:d}m",
+				out += std::move(std::format("\x1b[38;2;{:d};{:d};{:d}m",
 					(currFg & colour::red) >> 16, (currFg & colour::green) >> 8 , (currFg & colour::blue)
-				);
+				));
 			}
 
 			if(buffer_[j][i].bgColor != currBg) {
 				currBg = buffer_[j][i].bgColor;
-				out += std::format("\x1b[48;2;{:d};{:d};{:d}m",
+				out += std::move(std::format("\x1b[48;2;{:d};{:d};{:d}m",
 					(currBg & colour::red) >> 16, (currBg & colour::green) >> 8 , (currBg & colour::blue)
-				); 
+				));
 			}
 
 			if(buffer_[j][i].emph != currEmphasis) {
 				currEmphasis = buffer_[j][i].emph;
-				out += std::format("\x1b[{:c}m",attribute_codes[currEmphasis]);
+				out += std::move(std::format("\x1b[{:c}m",attribute_codes[currEmphasis]));
 			}
 			
 			if(bytes > 0) { out.append(multiByteChar , bytes); }
@@ -207,3 +207,364 @@ void canvas::renderStringGenerate(std::string& out) const noexcept
 		out += renderStrGenResetSeq;
 	}
 }
+
+void canvas::drawPrimitives(
+    const std::vector<vertex>& vertices, const std::vector<unsigned int>& indices,
+    const enum drawPrimitives prim
+) noexcept
+{
+    switch (prim) {
+        case drawPrimitives::POINTS:
+            for (const unsigned int idx : indices)
+            {
+                const vertex& v = vertices[idx];
+
+                // Map from NDC [-1, 1] to high-res screen space
+                const int pixelX = static_cast<int>((v.x + 1.0f) * 0.5f * (width_ - 1));
+                const int pixelY = static_cast<int>((1.0f - (v.y + 1.0f) * 0.5f) * ((height_ << 1) - 1));
+
+                if (pixelX < 0 || pixelX >= static_cast<int>(width_)) continue;
+                if (pixelY < 0 || pixelY >= static_cast<int>(height_ << 1)) continue;
+
+                cell& c = buffer_[pixelY >> 1][pixelX];
+
+				if (pixelY & 0x1) {
+                    if (c.character != L'\u2580') {
+                        c.fgColor = c.bgColor;
+                    }
+                    c.bgColor = v.col;
+                }
+				else {
+                    c.fgColor = v.col;
+                }
+				
+				c.character = L'\u2580';
+            }
+            break;
+		case drawPrimitives::LINES:
+            for (size_t i = 0; i < indices.size(); i += 2) {
+                if (i + 1 >= indices.size()) break;
+                
+                const vertex& v1 = vertices[indices[i]];
+                const vertex& v2 = vertices[indices[i + 1]];
+
+				const bool colourInterpolate = v1.col != v2.col;
+                
+                const int x1 = static_cast<int>((v1.x + 1.0f) * 0.5f * (width_ - 1));
+                const int y1 = static_cast<int>((1.0f - (v1.y + 1.0f) * 0.5f) * ((height_ << 1) - 1));
+                const int x2 = static_cast<int>((v2.x + 1.0f) * 0.5f * (width_ - 1));
+                const int y2 = static_cast<int>((1.0f - (v2.y + 1.0f) * 0.5f) * ((height_ << 1) - 1));
+                
+                const int dx = abs(x2 - x1);
+                const int dy = abs(y2 - y1);
+                const int sx = (x1 < x2) ? 1 : -1;
+                const int sy = (y1 < y2) ? 1 : -1;
+                int err = dx - dy;
+                
+                int x = x1, y = y1;
+                
+                while (true) {
+                    // Check bounds
+                    if (x >= 0 && x < static_cast<int>(width_) && 
+                        y >= 0 && y < static_cast<int>(height_ << 1)) {
+                        
+                        cell& c = buffer_[y >> 1][x];
+
+                        colour lineColor = v1.col;
+						
+						if(colourInterpolate) {
+							const float t = (dx >= dy && dx > 0)
+								? (float)abs(x - x1) / dx
+								: (dy > 0 ? (float)abs(y - y1) / dy : 0.0f);
+
+							// Extract RGB components (HSV)
+							const float r1 = ((v1.col & colour::red) >> 16) / 255.0f;
+							const float g1 = ((v1.col & colour::green) >> 8) / 255.0f;
+							const float b1 = (v1.col & colour::blue) / 255.0f;
+							const float r2 = ((v2.col & colour::red) >> 16) / 255.0f;
+							const float g2 = ((v2.col & colour::green) >> 8) / 255.0f;
+							const float b2 = (v2.col & colour::blue) / 255.0f;
+							const float r = r1 + t * (r2 - r1);
+							const float g = g1 + t * (g2 - g1);
+							const float b = b1 + t * (b2 - b1);
+							const uint32_t ri = static_cast<uint32_t>(r * 255.0f);
+							const uint32_t gi = static_cast<uint32_t>(g * 255.0f);
+							const uint32_t bi = static_cast<uint32_t>(b * 255.0f);
+							lineColor = static_cast<colour>((ri << 16) | (gi << 8) | bi);
+						}
+                        
+                        if (y & 0x1) {
+                            // Bottom half
+                            if (c.character != L'\u2580') {
+                                c.fgColor = c.bgColor;
+                            }
+                            c.bgColor = lineColor;
+                        } else {
+                            // Top half
+                            c.fgColor = lineColor;
+                        }
+                        
+                        c.character = L'\u2580';
+                    }
+                    
+                    if (x == x2 && y == y2) break;
+                    const int e2 = 2 * err;
+                    if (e2 > -dy) {
+                        err -= dy;
+                        x += sx;
+                    }
+                    if (e2 < dx) {
+                        err += dx;
+                        y += sy;
+                    }
+                }
+            }
+            break;
+        case drawPrimitives::LINE_STRIP:
+            for (size_t i = 0; i < indices.size(); i += 1) {
+                if (i + 1 >= indices.size()) break;
+                
+                const vertex& v1 = vertices[indices[i]];
+                const vertex& v2 = vertices[indices[i + 1]];
+
+				const bool colourInterpolate = v1.col != v2.col;
+                
+                const int x1 = static_cast<int>((v1.x + 1.0f) * 0.5f * (width_ - 1));
+                const int y1 = static_cast<int>((1.0f - (v1.y + 1.0f) * 0.5f) * ((height_ << 1) - 1));
+                const int x2 = static_cast<int>((v2.x + 1.0f) * 0.5f * (width_ - 1));
+                const int y2 = static_cast<int>((1.0f - (v2.y + 1.0f) * 0.5f) * ((height_ << 1) - 1));
+                
+                const int dx = abs(x2 - x1);
+                const int dy = abs(y2 - y1);
+                const int sx = (x1 < x2) ? 1 : -1;
+                const int sy = (y1 < y2) ? 1 : -1;
+                int err = dx - dy;
+                
+                int x = x1, y = y1;
+                
+                while (true) {
+                    // Check bounds
+                    if (x >= 0 && x < static_cast<int>(width_) && 
+                        y >= 0 && y < static_cast<int>(height_ << 1)) {
+                        
+                        cell& c = buffer_[y >> 1][x];
+
+                        colour lineColor = v1.col;
+						
+						if(colourInterpolate) {
+							const float t = (dx >= dy && dx > 0)
+								? (float)abs(x - x1) / dx
+								: (dy > 0 ? (float)abs(y - y1) / dy : 0.0f);
+
+							// Extract RGB components (HSV)
+							const float r1 = ((v1.col & colour::red) >> 16) / 255.0f;
+							const float g1 = ((v1.col & colour::green) >> 8) / 255.0f;
+							const float b1 = (v1.col & colour::blue) / 255.0f;
+							const float r2 = ((v2.col & colour::red) >> 16) / 255.0f;
+							const float g2 = ((v2.col & colour::green) >> 8) / 255.0f;
+							const float b2 = (v2.col & colour::blue) / 255.0f;
+							const float r = r1 + t * (r2 - r1);
+							const float g = g1 + t * (g2 - g1);
+							const float b = b1 + t * (b2 - b1);
+							const uint32_t ri = static_cast<uint32_t>(r * 255.0f);
+							const uint32_t gi = static_cast<uint32_t>(g * 255.0f);
+							const uint32_t bi = static_cast<uint32_t>(b * 255.0f);
+							lineColor = static_cast<colour>((ri << 16) | (gi << 8) | bi);
+						}
+                        
+                        if (y & 0x1) {
+                            // Bottom half
+                            if (c.character != L'\u2580') {
+                                c.fgColor = c.bgColor;
+                            }
+                            c.bgColor = lineColor;
+                        } else {
+                            // Top half
+                            c.fgColor = lineColor;
+                        }
+                        
+                        c.character = L'\u2580';
+                    }
+                    
+                    if (x == x2 && y == y2) break;
+                    const int e2 = 2 * err;
+                    if (e2 > -dy) {
+                        err -= dy;
+                        x += sx;
+                    }
+                    if (e2 < dx) {
+                        err += dx;
+                        y += sy;
+                    }
+                }
+            }
+            break;
+		case drawPrimitives::TRIANGLES:
+			for (size_t i = 0; i < indices.size(); i += 3) {
+				if (i + 2 >= indices.size()) break;
+				
+				const vertex& v1 = vertices[indices[i]];
+				const vertex& v2 = vertices[indices[i + 1]];
+				const vertex& v3 = vertices[indices[i + 2]];
+				
+				const float x1f = (v1.x + 1.0f) * 0.5f * (width_ - 1);
+				const float y1f = (1.0f - (v1.y + 1.0f) * 0.5f) * ((height_ << 1) - 1);
+				const float x2f = (v2.x + 1.0f) * 0.5f * (width_ - 1);
+				const float y2f = (1.0f - (v2.y + 1.0f) * 0.5f) * ((height_ << 1) - 1);
+				const float x3f = (v3.x + 1.0f) * 0.5f * (width_ - 1);
+				const float y3f = (1.0f - (v3.y + 1.0f) * 0.5f) * ((height_ << 1) - 1);
+				
+				const int x1 = static_cast<int>(x1f);
+				const int y1 = static_cast<int>(y1f);
+				const int x2 = static_cast<int>(x2f);
+				const int y2 = static_cast<int>(y2f);
+				const int x3 = static_cast<int>(x3f);
+				const int y3 = static_cast<int>(y3f);
+				
+				const int minX = std::max(0, std::min({x1, x2, x3}));
+				const int maxX = std::min(static_cast<int>(width_) - 1, std::max({x1, x2, x3}));
+				const int minY = std::max(0, std::min({y1, y2, y3}));
+				const int maxY = std::min(static_cast<int>(height_ << 1) - 1, std::max({y1, y2, y3}));
+				
+				const float area = 0.5f * ((x2f - x1f) * (y3f - y1f) - (x3f - x1f) * (y2f - y1f));
+				if (std::abs(area) < 0.001f) continue;
+				
+				const float A01 = y1f - y2f;
+				const float B01 = x2f - x1f;
+				const float C01 = x1f * y2f - x2f * y1f;
+				
+				const float A12 = y2f - y3f;
+				const float B12 = x3f - x2f;
+				const float C12 = x2f * y3f - x3f * y2f;
+				
+				const float A20 = y3f - y1f;
+				const float B20 = x1f - x3f;
+				const float C20 = x3f * y1f - x1f * y3f;
+				
+				for (int y = minY; y <= maxY; ++y) {
+					for (int x = minX; x <= maxX; ++x) {
+						const float px = static_cast<float>(x) + 0.5f;
+						const float py = static_cast<float>(y) + 0.5f;
+						
+						const float w0 = A01 * px + B01 * py + C01;
+						const float w1 = A12 * px + B12 * py + C12;
+						const float w2 = A20 * px + B20 * py + C20;
+						
+						const bool inside = (area > 0) ? (w0 >= 0 && w1 >= 0 && w2 >= 0) 
+													   : (w0 <= 0 && w1 <= 0 && w2 <= 0);
+						
+						if (inside) {
+							const float invArea = 1.0f / (2.0f * area);
+							const float u = w1 * invArea;
+							const float v = w2 * invArea;
+							const float w = 1.0f - u - v;
+							
+							const float r1 = ((v1.col & colour::red) >> 16) / 255.0f;
+							const float g1 = ((v1.col & colour::green) >> 8) / 255.0f;
+							const float b1 = (v1.col & colour::blue) / 255.0f;
+							const float r2 = ((v2.col & colour::red) >> 16) / 255.0f;
+							const float g2 = ((v2.col & colour::green) >> 8) / 255.0f;
+							const float b2 = (v2.col & colour::blue) / 255.0f;
+							const float r3 = ((v3.col & colour::red) >> 16) / 255.0f;
+							const float g3 = ((v3.col & colour::green) >> 8) / 255.0f;
+							const float b3 = (v3.col & colour::blue) / 255.0f;
+							
+							const float r = u * r1 + v * r2 + w * r3;
+							const float g = u * g1 + v * g2 + w * g3;
+							const float b = u * b1 + v * b2 + w * b3;
+							
+							const uint32_t ri = static_cast<uint32_t>(std::clamp(r * 255.0f, 0.0f, 255.0f));
+							const uint32_t gi = static_cast<uint32_t>(std::clamp(g * 255.0f, 0.0f, 255.0f));
+							const uint32_t bi = static_cast<uint32_t>(std::clamp(b * 255.0f, 0.0f, 255.0f));
+							const colour pixelColor = static_cast<colour>((ri << 16) | (gi << 8) | bi);
+
+							cell& c = buffer_[y >> 1][x];
+							
+							if (y & 0x1) {
+								// Bottom half
+								if (c.character != L'\u2580') {
+									c.fgColor = c.bgColor;
+								}
+								c.bgColor = pixelColor;
+							} else {
+								// Top half
+								c.fgColor = pixelColor;
+							}
+							
+							c.character = L'\u2580';
+						}
+					}
+				}
+			}
+			break;
+		case drawPrimitives::TRIANGLES_STRIP:
+			for (size_t i = 0; i < indices.size(); i += 1) {
+				if (i + 2 >= indices.size()) break;
+				
+				const vertex& v1 = vertices[indices[i]];
+				const vertex& v2 = (i % 2 == 0) ? vertices[indices[i + 1]] : vertices[indices[i + 2]];
+				const vertex& v3 = (i % 2 == 0) ? vertices[indices[i + 2]] : vertices[indices[i + 1]];
+
+				const int x1 = static_cast<int>((v1.x + 1.0f) * 0.5f * (width_ - 1));
+				const int y1 = static_cast<int>((1.0f - (v1.y + 1.0f) * 0.5f) * ((height_ << 1) - 1));
+				const int x2 = static_cast<int>((v2.x + 1.0f) * 0.5f * (width_ - 1));
+				const int y2 = static_cast<int>((1.0f - (v2.y + 1.0f) * 0.5f) * ((height_ << 1) - 1));
+				const int x3 = static_cast<int>((v3.x + 1.0f) * 0.5f * (width_ - 1));
+				const int y3 = static_cast<int>((1.0f - (v3.y + 1.0f) * 0.5f) * ((height_ << 1) - 1));
+
+				const int minX = std::max(0, std::min({x1, x2, x3}));
+				const int maxX = std::min(static_cast<int>(width_) - 1, std::max({x1, x2, x3}));
+				const int minY = std::max(0, std::min({y1, y2, y3}));
+				const int maxY = std::min(static_cast<int>(height_ << 1) - 1, std::max({y1, y2, y3}));
+				
+				const float area = 0.5f * abs((x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1));
+				if (area == 0.0f) continue;
+				
+				for (int y = minY; y <= maxY; ++y) {
+					for (int x = minX; x <= maxX; ++x) {
+						const float w1 = ((x2 - x3) * (y - y3) + (y3 - y2) * (x - x3)) / (2.0f * area);
+						const float w2 = ((x3 - x1) * (y - y1) + (y1 - y3) * (x - x1)) / (2.0f * area);
+						const float w3 = 1.0f - w1 - w2;
+						
+						if (w1 >= 0.0f && w2 >= 0.0f && w3 >= 0.0f) {
+							const float r1 = ((v1.col & colour::red) >> 16) / 255.0f;
+							const float g1 = ((v1.col & colour::green) >> 8) / 255.0f;
+							const float b1 = (v1.col & colour::blue) / 255.0f;
+							const float r2 = ((v2.col & colour::red) >> 16) / 255.0f;
+							const float g2 = ((v2.col & colour::green) >> 8) / 255.0f;
+							const float b2 = (v2.col & colour::blue) / 255.0f;
+							const float r3 = ((v3.col & colour::red) >> 16) / 255.0f;
+							const float g3 = ((v3.col & colour::green) >> 8) / 255.0f;
+							const float b3 = (v3.col & colour::blue) / 255.0f;
+							
+							const float r = w1 * r1 + w2 * r2 + w3 * r3;
+							const float g = w1 * g1 + w2 * g2 + w3 * g3;
+							const float b = w1 * b1 + w2 * b2 + w3 * b3;
+							
+							const uint32_t ri = static_cast<uint32_t>(std::clamp(r * 255.0f, 0.0f, 255.0f));
+							const uint32_t gi = static_cast<uint32_t>(std::clamp(g * 255.0f, 0.0f, 255.0f));
+							const uint32_t bi = static_cast<uint32_t>(std::clamp(b * 255.0f, 0.0f, 255.0f));
+							const colour pixelColor = static_cast<colour>((ri << 16) | (gi << 8) | bi);
+							
+							cell& c = buffer_[y >> 1][x];
+							
+							if (y & 0x1) {
+								// Bottom half
+								if (c.character != L'\u2580') {
+									c.fgColor = c.bgColor;
+								}
+								c.bgColor = pixelColor;
+							} else {
+								// Top half
+								c.fgColor = pixelColor;
+							}
+							
+							c.character = L'\u2580';
+						}
+					}
+				}
+			}
+			break;
+    }
+}
+

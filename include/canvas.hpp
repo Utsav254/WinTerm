@@ -25,6 +25,25 @@ namespace winTerm
 		END,
 	};
 
+	enum class drawPrimitives
+	{
+		POINTS,
+		LINES,
+		LINE_STRIP,
+		TRIANGLES,
+		TRIANGLES_STRIP,
+	};
+
+	struct vertex
+	{
+		float x, y, z, w;
+		colour col;
+
+		vertex(): x(0.0f), y(0.0f), z(0.0f), w(0.0f), col(colour::white){}
+		vertex(const float x, const float y, const float z, const float w): x(x), y(y), z(z), w(w), col(colour::white){}
+		vertex(const float x, const float y, const float z, const float w, const colour c): x(x), y(y), z(z), w(w), col(c){}
+	};
+
 	struct canvas {
 	public:
 		canvas(
@@ -73,6 +92,12 @@ namespace winTerm
 		void renderStringGenerate(std::string& out) const noexcept;
 
 		inline canvMsg getMessage() const noexcept {return message_;}
+
+		void drawPrimitives(
+				const std::vector<vertex>& vertices,
+				const std::vector<unsigned int>& indices,
+				const drawPrimitives prim
+		) noexcept;
 
 	private:
 		unsigned int width_ , height_;
