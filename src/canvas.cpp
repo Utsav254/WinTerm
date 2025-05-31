@@ -170,7 +170,7 @@ void canvas::renderStringGenerate(std::string& out) const noexcept
 	colour currBg = buffer_[0][0].bgColor;
 	emphasis currEmphasis = buffer_[0][0].emph;
 
-	// initialise ansi string for render // TODO: add empphasis support
+	// initialise ansi string for render
 	out += std::format("\x1b[{:d};{:d}H\x1b[48;2;{:d};{:d};{:d}m\x1b[38;2;{:d};{:d};{:d}m\x1b[{:c}m",
 					(y_), (x_),
 					(currBg & colour::red) >> 16, (currBg & colour::green) >> 8 , (currBg & colour::blue),
@@ -180,7 +180,7 @@ void canvas::renderStringGenerate(std::string& out) const noexcept
 	for(int j = 0 ; j < (int)buffer_.size() ; j++) {
 		for (int i = 0 ; i < (int)buffer_[j].size() ; i++) {
 
-			int bytes = wctomb(multiByteChar , buffer_[j][i].character); // TODO optimise this 
+			int bytes = wctomb(multiByteChar , buffer_[j][i].character);
 			
 			if(buffer_[j][i].fgColor != currFg) {
 				currFg = buffer_[j][i].fgColor;

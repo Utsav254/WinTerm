@@ -64,12 +64,6 @@ int main()
 {
 	wt::initialise();
 
-	wt::handle<wt::window> hWnd = wt::createWindow(0, 0, 70, 35,
-			L"Hell world Window", wt::wndStyle::STANDARD, termProc, nullptr, nullptr);
-
-	if(hWnd == nullptr) throw std::runtime_error("got nullptr hWnd");
-	else std::cout << "got nice window handle" << std::endl;
-
 	wt::msg msg;
 	int getEventResult;
 
@@ -78,8 +72,6 @@ int main()
 		termProc(&msg);
 	}
 
-	wt::destroyWindow(hWnd);
-	
 	wt::destroy();
 
 	if(getEventResult == 0) return static_cast<int>(msg.param.l);
