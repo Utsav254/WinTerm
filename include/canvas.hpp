@@ -77,14 +77,14 @@ namespace winTerm
 		void clear(const cell& cl) noexcept;
 		
 		void setBackground(const colour col) noexcept;
-		inline colour getBackground() const noexcept { return background_; }
+		void setForeground(const colour col) noexcept;
 
 		void addText(const std::string& str , unsigned int row , unsigned int column , 
 			   const colour fg , const colour bg , emphasis emph);
 
 		void drawRect(const rect& rectangle , const colour bg , const borderStyle bs , const bool erase) noexcept;
 		
-		void setBorder(const borderStyle bs) noexcept;
+		void setBorder(const borderStyle bs, const colour fg) noexcept;
 
 		void getBuffer(std::vector<std::vector<cell>>& buffer) const { buffer = buffer_; }
 		void updateRenderScheme(canvMsg in) noexcept { message_ = in; }
@@ -501,7 +501,6 @@ namespace winTerm
 		unsigned int width_ , height_;
 		unsigned int x_, y_;
 		std::vector<std::vector<cell>> buffer_;
-		colour background_;
 
 		const std::string renderStrGenResetSeq;
 

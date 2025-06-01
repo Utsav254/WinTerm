@@ -71,7 +71,15 @@ void canvas::setBackground(const colour col) noexcept
 			elem.bgColor = col;
 		}
 	}
-	background_ = col;
+}
+
+void canvas::setForeground(const colour col) noexcept
+{
+	for(std::vector<cell>& row : buffer_) {
+		for(cell& elem : row) {
+			elem.fgColor = col;
+		}
+	}
 }
 
 void canvas::addText(const std::string& str , unsigned int row , unsigned int column , 
@@ -133,7 +141,7 @@ void canvas::drawRect(const rect& rectangle , const colour bg , const borderStyl
 	}
 }
 
-void canvas::setBorder(const borderStyle bs) noexcept
+void canvas::setBorder(const borderStyle bs, const colour fg) noexcept
 {
 	unsigned int offset = static_cast<unsigned int>(bs);
 	// corners 
@@ -142,16 +150,27 @@ void canvas::setBorder(const borderStyle bs) noexcept
 	buffer_[height_ - 1][0].character = borderChars[offset+4];
 	buffer_[height_ - 1][width_ - 1].character = borderChars[offset+5];
 	
+	buffer_[0][0].fgColor = fg; 
+	buffer_[0][width_ - 1].fgColor = fg; 
+	buffer_[height_ - 1][0].fgColor = fg; 
+	buffer_[height_ - 1][width_ - 1].fgColor = fg; 
+
 	// horizontal borders
 	for(unsigned int i = 1 ; i < width_ - 1 ; i++) {
 		buffer_[0][i].character = borderChars[offset];
+		buffer_[0][i].fgColor = fg; 
+
 		buffer_[height_ - 1][i].character = borderChars[offset];
+		buffer_[height_ - 1][i].fgColor = fg; 
 	}
 	
 	// vertical borders
 	for(unsigned int j = 1 ; j < height_ - 1 ; j++) {
 		buffer_[j][0].character = borderChars[offset+1];
+		buffer_[j][0].fgColor = fg; 
+
 		buffer_[j][width_ - 1].character = borderChars[offset+1];
+		buffer_[j][width_ - 1].fgColor = fg; 
 	}
 }
 
