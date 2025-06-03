@@ -3,7 +3,6 @@
 #include "winTerm.hpp"
 #include <string>
 #include <vector>
-#include <chrono>
 
 namespace wt = winTerm;
 
@@ -32,8 +31,6 @@ int termProc(wt::msg *msg) {
 	static float spin_angle = 0.0f;
 	static wt::mat4 rotation_mat;
 
-	static std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-
 	switch (msg->m) {
 		case wt::message::KEYBOARD:
 			{
@@ -52,6 +49,7 @@ int termProc(wt::msg *msg) {
 			{
 				constexpr unsigned int x = 80, y = 40;
 				wt::canvas *cv = wt::beginPaint(x , y);
+
 				cv->setBackground(wt::colour::black);
 				cv->setForeground(wt::colour::black);
 				cv->setBorder(wt::borderStyle::two, wt::colour::white);
@@ -60,21 +58,15 @@ int termProc(wt::msg *msg) {
 				vbo.emplace_back(0.0f, 0.7f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f);
 				vbo.emplace_back(-0.7f, -0.3f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
 				vbo.emplace_back(0.7f, -0.3f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
-
 				const std::vector<unsigned int> ibo = {2,1,0};
 				wt::make_rotation_z(spin_angle, rotation_mat);
-				
-				start = std::chrono::high_resolution_clock::now();
-				cv->draw(vbo, ibo, wt::drawPrimitives::TRIANGLES, &vs, &fs, rotation_mat);
-				end = std::chrono::high_resolution_clock::now();
 
-				auto duration = std::chrono::duration<float, std::milli>(end - start).count();
-				const std::string title = std::format(" Frame Time: {:.2f} ms ", duration);
-				cv->addText(title , 0 , (x / 2) - (title.size() / 2), wt::colour::white,
+				cv->draw(vbo, ibo, wt::drawPrimitives::TRIANGLES, &vs, &fs, rotation_mat);
+
+				cv->addText(" Window Title " , 0 , (x / 2) - (14 / 2), wt::colour::white,
 					wt::colour::black, wt::emphasis::bold);
 				
 				wt::endPaint(cv);
-
 			}
 			break;
 		case wt::message::RESIZE:

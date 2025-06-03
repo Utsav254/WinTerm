@@ -10,17 +10,6 @@
 
 namespace winTerm
 {
-	struct cell {
-		wchar_t character;
-		colour fgColor;
-		colour bgColor;
-		emphasis emph;
-
-		cell();
-		cell(wchar_t c);
-		cell(wchar_t c , const enum colour fg , const enum colour bg , emphasis emph);
-	};
-
 	enum class canvMsg {
 		OPTIMISE,
 		FORCE_RERENDER,
@@ -50,12 +39,16 @@ namespace winTerm
 		canvas(
 			const unsigned int width, const unsigned int height,
 			const unsigned int x = 0, const unsigned int y = 0,
-			const cell& cl = {L' ', colour::white, colour::black, emphasis::norm},
+			wchar_t character = L' ', colour fg = colour::white, colour bg = colour::black,
+			emphasis emph = emphasis::norm,
 			const canvMsg msg = canvMsg::OPTIMISE):
 
 			width_(width) , height_(height),
 			x_(x), y_(y),
-			buffer_(height , std::vector<cell>(width , cl)),
+			buffer_chars_(height , std::vector<wchar_t>(width , character)),
+			buffer_fg_(height , std::vector<colour>(width , fg)),
+			buffer_bg_(height , std::vector<colour>(width , bg)),
+			buffer_emph_(height , std::vector<emphasis>(width , emph)),
 			renderStrGenResetSeq(std::format("\x1b[1B\x1b[{:d}D", width_)),
 			message_(msg)
 		{
@@ -68,12 +61,9 @@ namespace winTerm
 		canvas(const canvas& ) = delete;
 		canvas& operator=(const canvas&) = delete;
 
-		void resize(const int newWidth , const int newHeight) noexcept;
-		
-		cell& at(const unsigned int row , const unsigned int column);
+		wchar_t& at(const unsigned int row , const unsigned int column);
 
 		void clear() noexcept;
-		void clear(const cell& cl) noexcept;
 		
 		void setBackground(const colour col) noexcept;
 		void setForeground(const colour col) noexcept;
@@ -85,7 +75,6 @@ namespace winTerm
 		
 		void setBorder(const borderStyle bs, const colour fg) noexcept;
 
-		void getBuffer(std::vector<std::vector<cell>>& buffer) const { buffer = buffer_; }
 		void updateRenderScheme(canvMsg in) noexcept { message_ = in; }
 
 		void setPosition(const unsigned int x, const unsigned int y);
@@ -112,7 +101,9 @@ namespace winTerm
 				if (x < 0 || x >= static_cast<int>(width_) || 
 					y < 0 || y >= static_cast<int>(height_ << 1)) return;
 					
-				cell& c = buffer_[y >> 1][x];
+				wchar_t& character = buffer_chars_[y >> 1][x];
+				colour& fgColor = buffer_fg_[y >> 1][x];
+				colour& bgColor = buffer_bg_[y >> 1][x];
 				
 				// SIMD color conversion
 				vec4 scaledCol = fragCol;
@@ -124,15 +115,15 @@ namespace winTerm
 				const colour finalCol = static_cast<colour>((ri << 16) | (gi << 8) | bi);
 
 				if (y & 0x1) {
-					if (c.character != L'\u2580') {
-						c.fgColor = c.bgColor;
+					if (character != L'\u2580') {
+						fgColor = bgColor;
 					}
-					c.bgColor = finalCol;
+					bgColor = finalCol;
 				} else {
-					c.fgColor = finalCol;
+					fgColor = finalCol;
 				}
 				
-				c.character = L'\u2580';
+				character = L'\u2580';
 			};
 
 			// Optimized line drawing with SIMD interpolation
@@ -421,7 +412,11 @@ namespace winTerm
 	private:
 		unsigned int width_ , height_;
 		unsigned int x_, y_;
-		std::vector<std::vector<cell>> buffer_;
+
+		std::vector<std::vector<wchar_t>> buffer_chars_;
+		std::vector<std::vector<colour>> buffer_fg_;
+		std::vector<std::vector<colour>> buffer_bg_;
+		std::vector<std::vector<emphasis>> buffer_emph_;
 
 		const std::string renderStrGenResetSeq;
 

@@ -3,7 +3,6 @@
 winTerm::canvas* winTerm::beginPaint(int rows , int columns) noexcept
 {
 	static canvas canv(rows, columns);
-	canv.resize(rows, columns);
 	return &canv;
 }
 

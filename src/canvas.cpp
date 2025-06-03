@@ -1,27 +1,8 @@
+#include <cstring>
 #include "canvas.hpp"
+#include "defs.hpp"
 
 using namespace winTerm;
-
-cell::cell(): 
-	character(' '), 
-	fgColor(colour::white),
-	bgColor(colour::black),
-	emph(static_cast<emphasis>(0))
-{}
-
-cell::cell(wchar_t c):
-	character(c),
-	fgColor(colour::white),
-	bgColor(colour::black),
-	emph(static_cast<emphasis>(0))
-{}
-
-cell::cell(wchar_t c , const enum colour fg , const enum colour bg , emphasis emph):
-	character(c),
-	fgColor(fg),
-	bgColor(bg),
-	emph(emph)
-{}
 
 static constexpr std::array<wchar_t , 6 * 4>borderChars =
 {
@@ -31,54 +12,30 @@ static constexpr std::array<wchar_t , 6 * 4>borderChars =
 	L'═' , L'║' , L'╔' , L'╗' , L'╚' , L'╝', // borderStyle::DOUBLE
 };
 
-void canvas::resize(const int newWidth , const int newHeight) noexcept
-{
-	buffer_.resize(newHeight , std::vector<cell>(newWidth , cell()));	
-}
-
-cell& canvas::at(const unsigned int row , const unsigned int column)
-{
-	if(row < height_ && column < width_) {
-		return buffer_[row][column];
-	}
-	else {
-		throw std::out_of_range(std::format("at: index ({:d} , {:d}) out of range" , row , column));
-	}
-}
-
 void canvas::clear() noexcept
 {
-	for(std::vector<cell>& row : buffer_) {
-		for(cell& elem : row) {
-			elem.character = L' ';
+	for(unsigned int j = 0 ; j < height_ ; j++)
+		for(unsigned int i = 0 ; i < width_ ; i++)
+		{
+			buffer_chars_[j][i] = L' ';
+			buffer_fg_[j][i] = colour::white;
+			buffer_bg_[j][i] = colour::black;
+			buffer_emph_[j][i] = emphasis::norm;
 		}
-	}
-}
 
-void canvas::clear(const cell& cl) noexcept
-{
-	for(std::vector<cell>& row : buffer_) {
-		for(cell& elem : row) {
-			elem = cl;
-		}
-	}
 }
 
 void canvas::setBackground(const colour col) noexcept
 {
-	for(std::vector<cell>& row : buffer_) {
-		for(cell& elem : row) {
-			elem.bgColor = col;
-		}
+	for(std::vector<colour>& row : buffer_bg_) {
+		std::memset(row.data(), col, row.size() * sizeof(colour));
 	}
 }
 
 void canvas::setForeground(const colour col) noexcept
 {
-	for(std::vector<cell>& row : buffer_) {
-		for(cell& elem : row) {
-			elem.fgColor = col;
-		}
+	for(std::vector<colour>& row : buffer_fg_) {
+		std::memset(row.data(), col, row.size() * sizeof(colour));
 	}
 }
 
@@ -90,7 +47,10 @@ void canvas::addText(const std::string& str , unsigned int row , unsigned int co
 	else {
 		for(unsigned int x = 0 ; x < str.size() ; x++) {
 			if(x + column >= width_) break;
-			buffer_[row][column + x] = cell(str[x] , fg , bg , style);
+			buffer_chars_[row][column + x] = str[x];
+			buffer_fg_[row][column + x] = fg;
+			buffer_bg_[row][column + x] = bg;
+			buffer_emph_[row][column + x] = style;
 		}
 	}
 }
@@ -104,37 +64,37 @@ void canvas::drawRect(const rect& rectangle , const colour bg , const borderStyl
 		for (unsigned int x = rectangle.left; x <= rectangle.right; ++x) {
 			if(x >= width_) break;
 			if (y == rectangle.top && x == rectangle.left) {
-				buffer_[y][x].character = borderChars[offset+2]; // Top-left corner
-				buffer_[y][x].bgColor = bg;
+				buffer_chars_[y][x] = borderChars[offset+2]; // Top-left corner
+				buffer_bg_[y][x] = bg;
 			}
 			else if (y == rectangle.top && x == rectangle.right) {
-				buffer_[y][x].character = borderChars[offset+3]; // Top-right corner
-				buffer_[y][x].bgColor = bg;
+				buffer_chars_[y][x] = borderChars[offset+3]; // Top-right corner
+				buffer_bg_[y][x] = bg;
 			}
 			else if (y == rectangle.bottom && x == rectangle.left) {
-				buffer_[y][x].character = borderChars[offset+4]; // Bottom-left corner
-				buffer_[y][x].bgColor = bg;
+				buffer_chars_[y][x] = borderChars[offset+4]; // Bottom-left corner
+				buffer_bg_[y][x] = bg;
 			}
 			else if (y == rectangle.bottom && x == rectangle.right) {
-				buffer_[y][x].character = borderChars[offset+5]; // Bottom-right corner
-				buffer_[y][x].bgColor = bg;
+				buffer_chars_[y][x] = borderChars[offset+5]; // Bottom-right corner
+				buffer_bg_[y][x] = bg;
 			}
 			else if (x == rectangle.left || x == rectangle.right) {
-				buffer_[y][x].character = borderChars[offset+1]; // Vertical border
-				buffer_[y][x].bgColor = bg;
+				buffer_chars_[y][x] = borderChars[offset+1]; // Vertical border
+				buffer_bg_[y][x] = bg;
 			}
 			else if (y == rectangle.top || y == rectangle.bottom) {
-				buffer_[y][x].character = borderChars[offset+0]; // Horizontal border
-				buffer_[y][x].bgColor = bg;
+				buffer_chars_[y][x] = borderChars[offset+0]; // Horizontal border
+				buffer_bg_[y][x] = bg;
 			}
 
 			else {
 				if(erase) {
-					buffer_[y][x].character = L' '; // Background character
-					buffer_[y][x].bgColor = bg;
+					buffer_chars_[y][x] = L' '; // Background character
+					buffer_bg_[y][x] = bg;
 				}
 				else {
-					buffer_[y][x].bgColor = bg;
+					buffer_bg_[y][x] = bg;
 				}
 			}
 		}
@@ -145,32 +105,32 @@ void canvas::setBorder(const borderStyle bs, const colour fg) noexcept
 {
 	unsigned int offset = static_cast<unsigned int>(bs);
 	// corners 
-	buffer_[0][0].character = borderChars[offset+2];
-	buffer_[0][width_ - 1].character = borderChars[offset+3];
-	buffer_[height_ - 1][0].character = borderChars[offset+4];
-	buffer_[height_ - 1][width_ - 1].character = borderChars[offset+5];
+	buffer_chars_[0][0] = borderChars[offset+2];
+	buffer_chars_[0][width_ - 1] = borderChars[offset+3];
+	buffer_chars_[height_ - 1][0] = borderChars[offset+4];
+	buffer_chars_[height_ - 1][width_ - 1] = borderChars[offset+5];
 	
-	buffer_[0][0].fgColor = fg; 
-	buffer_[0][width_ - 1].fgColor = fg; 
-	buffer_[height_ - 1][0].fgColor = fg; 
-	buffer_[height_ - 1][width_ - 1].fgColor = fg; 
+	buffer_fg_[0][0] = fg; 
+	buffer_fg_[0][width_ - 1] = fg; 
+	buffer_fg_[height_ - 1][0] = fg; 
+	buffer_fg_[height_ - 1][width_ - 1] = fg; 
 
 	// horizontal borders
 	for(unsigned int i = 1 ; i < width_ - 1 ; i++) {
-		buffer_[0][i].character = borderChars[offset];
-		buffer_[0][i].fgColor = fg; 
+		buffer_chars_[0][i] = borderChars[offset];
+		buffer_fg_[0][i] = fg; 
 
-		buffer_[height_ - 1][i].character = borderChars[offset];
-		buffer_[height_ - 1][i].fgColor = fg; 
+		buffer_chars_[height_ - 1][i] = borderChars[offset];
+		buffer_fg_[height_ - 1][i] = fg;
 	}
 	
 	// vertical borders
 	for(unsigned int j = 1 ; j < height_ - 1 ; j++) {
-		buffer_[j][0].character = borderChars[offset+1];
-		buffer_[j][0].fgColor = fg; 
+		buffer_chars_[j][0] = borderChars[offset+1];
+		buffer_fg_[j][0] = fg; 
 
-		buffer_[j][width_ - 1].character = borderChars[offset+1];
-		buffer_[j][width_ - 1].fgColor = fg; 
+		buffer_chars_[j][width_ - 1] = borderChars[offset+1];
+		buffer_fg_[j][width_ - 1] = fg; 
 	}
 }
 
@@ -185,9 +145,9 @@ void canvas::renderStringGenerate(std::string& out) const noexcept
 {
 	char multiByteChar[4] = {0};
 
-	colour currFg = buffer_[0][0].fgColor;
-	colour currBg = buffer_[0][0].bgColor;
-	emphasis currEmphasis = buffer_[0][0].emph;
+	colour currFg = buffer_fg_[0][0];
+	colour currBg = buffer_bg_[0][0];
+	emphasis currEmphasis = buffer_emph_[0][0];
 
 	// initialise ansi string for render
 	out += std::move(std::format("\x1b[{:d};{:d}H\x1b[48;2;{:d};{:d};{:d}m\x1b[38;2;{:d};{:d};{:d}m\x1b[{:c}m",
@@ -197,27 +157,27 @@ void canvas::renderStringGenerate(std::string& out) const noexcept
 					attribute_codes[currEmphasis]
 	));
 
-	for(int j = 0 ; j < (int)buffer_.size() ; j++) {
-		for (int i = 0 ; i < (int)buffer_[j].size() ; i++) {
+	for(unsigned int j = 0 ; j < height_ ; j++) {
+		for (unsigned int i = 0 ; i < width_ ; i++) {
 
-			const int bytes = wctomb(multiByteChar , buffer_[j][i].character);
+			const int bytes = wctomb(multiByteChar , buffer_chars_[j][i]);
 			
-			if(buffer_[j][i].fgColor != currFg) {
-				currFg = buffer_[j][i].fgColor;
+			if(buffer_fg_[j][i] != currFg) {
+				currFg = buffer_fg_[j][i];
 				out += std::move(std::format("\x1b[38;2;{:d};{:d};{:d}m",
 					(currFg & colour::red) >> 16, (currFg & colour::green) >> 8 , (currFg & colour::blue)
 				));
 			}
 
-			if(buffer_[j][i].bgColor != currBg) {
-				currBg = buffer_[j][i].bgColor;
+			if(buffer_bg_[j][i] != currBg) {
+				currBg = buffer_bg_[j][i];
 				out += std::move(std::format("\x1b[48;2;{:d};{:d};{:d}m",
 					(currBg & colour::red) >> 16, (currBg & colour::green) >> 8 , (currBg & colour::blue)
 				));
 			}
 
-			if(buffer_[j][i].emph != currEmphasis) {
-				currEmphasis = buffer_[j][i].emph;
+			if(buffer_emph_[j][i] != currEmphasis) {
+				currEmphasis = buffer_emph_[j][i];
 				out += std::move(std::format("\x1b[{:c}m",attribute_codes[currEmphasis]));
 			}
 			
